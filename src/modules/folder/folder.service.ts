@@ -1,13 +1,21 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { FolderCreateDto } from './dto/folder-create.dto';
 import { FolderRepository } from './folder.repository';
 import { CommonResponse } from 'src/common/dto/response.dto';
 import { GetFolderDataDto } from './dto/folders-response.dto';
-import { FolderUpdateDto } from './dto/folder-upadate.dto';
+import { AwsRepository } from '../aws/aws.repository';
+import { ImageRepository } from '../image/Image.repository';
+import { FolderImageRepository } from '../folderImage/folderImage.repository';
+import { FolderUpdateDto } from './dto/folder-update.dto';
 
 @Injectable()
 export class FolderService {
-  constructor(private folderRepository: FolderRepository) {}
+  constructor(
+    private folderRepository: FolderRepository,
+    private awsRepository: AwsRepository,
+    private imageRepository: ImageRepository,
+    private folderImageRepository: FolderImageRepository,
+  ) {}
 
   async getTopFolders(): Promise<CommonResponse<GetFolderDataDto[]>> {
     const folders = await this.folderRepository.getTopFolders();
@@ -43,5 +51,85 @@ export class FolderService {
 
   deleteFolder(id: number) {
     return this.folderRepository.deleteFolder(id);
+  }
+
+  async uploadImageFolder(
+    id: number,
+    file: Express.Multer.File,
+  ): Promise<CommonResponse> {
+    const folder = await this.folderRepository.getFolderById(id);
+    const isUniqueImages = await this.folderImageRepository.getFolderImageById(
+      id,
+      file,
+    );
+
+    const filteredFile = file;
+
+    if (isUniqueImages) {
+      const checkFileNameReg = /\.[^/.]+$/;
+      const checkHasFileNumberReg = /[\w\d\s\D]+ (\(\d+\))$/;
+      const checkFileNumberReg = /(\(\d+\))$/;
+
+      const extension = filteredFile.originalname.match(checkFileNameReg);
+      const fileName = filteredFile.originalname
+        .replace(checkFileNameReg, '')
+        .trim();
+      const fileNumber = fileName.match(checkFileNumberReg)?.[0];
+
+      const checkHasFileNumber = checkHasFileNumberReg.test(fileName.trim());
+
+      console.log(fileName.match(checkFileNumberReg));
+      console.log(checkHasFileNumber);
+      console.log(fileNumber);
+
+      if (checkHasFileNumber) {
+        filteredFile.originalname = `${fileName.replace(fileNumber, '')}(${
+          Number(fileNumber?.substring(1, fileNumber.length - 1)) + 1
+        })${extension}`;
+      } else {
+        filteredFile.originalname = `${fileName.replace(
+          fileNumber,
+          '',
+        )} (1)${extension}`;
+      }
+    }
+
+    const image = await this.awsRepository.imageUpload(folder.name, file);
+    await this.folderImageRepository.createFolderImage(id, image);
+
+    return { status: 200 };
+  }
+
+  async uploadImagesFolder(
+    id: number,
+    fileList: Array<Express.Multer.File>,
+  ): Promise<CommonResponse> {
+    try {
+      const folder = await this.folderRepository.getFolderById(id);
+      const folderImages = await this.folderImageRepository.getFolderImagesById(
+        id,
+        fileList,
+      );
+      if (folderImages.some((folderImage) => folderImage)) {
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            errorCode: 'unique',
+          },
+          HttpStatus.BAD_REQUEST,
+          { cause: new Error() },
+        );
+      }
+      const imageList = await this.awsRepository.imagesUpload(
+        folder.name,
+        fileList,
+      );
+
+      await this.folderImageRepository.createFolderImages(id, imageList);
+
+      return { status: 200 };
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }
