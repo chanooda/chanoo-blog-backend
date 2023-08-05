@@ -3,7 +3,7 @@ import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { FolderCreateDto } from './dto/folder-create.dto';
 import { Folder } from '@prisma/client';
 import { GetFolderDataDto } from './dto/folders-response.dto';
-import { FolderUpdateDto } from './dto/folder-upadate.dto';
+import { FolderUpdateDto } from './dto/folder-update.dto';
 
 @Injectable()
 export class FolderRepository {
@@ -24,6 +24,11 @@ export class FolderRepository {
       include: {
         child: true,
         parent: true,
+        _count: {
+          select: {
+            folderImage: true,
+          },
+        },
       },
     });
 
@@ -31,15 +36,30 @@ export class FolderRepository {
   }
 
   async getFolderById(id: number): Promise<GetFolderDataDto> {
-    const folders = await this.prisma.folder.findUnique({
-      where: { id: id },
-      include: {
-        child: true,
-        parent: true,
-      },
-    });
+    try {
+      const folder = await this.prisma.folder.findUnique({
+        where: { id: id },
+        include: {
+          child: true,
+          parent: true,
+          folderImage: true,
+        },
+      });
 
-    return folders;
+      if (!folder) {
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: '해당 id의 유저가 존재하지 않습니다.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return folder;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async patchFolder(id: number, FolderUpdateDto: FolderUpdateDto) {
@@ -53,7 +73,7 @@ export class FolderRepository {
         ...rest,
         parentId,
         child: {
-          connect: child.map((id) => ({ id })),
+          connect: child?.map((id) => ({ id })) || [],
         },
       },
     });
