@@ -10,10 +10,24 @@ export class FolderRepository {
   constructor(private prisma: PrismaService) {}
 
   async createFolder(createFolderDto: FolderCreateDto): Promise<Folder> {
-    const folder = await this.prisma.folder.create({
-      data: createFolderDto,
-    });
-    return folder;
+    try {
+      const folder = await this.prisma.folder.create({
+        data: createFolderDto,
+      });
+      return folder;
+    } catch (e) {
+      console.error(e);
+
+      if (e.code === 'P2002') {
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: '중복된 이름의 폴더입니다.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    }
   }
 
   async getTopFolders(): Promise<GetFolderDataDto[]> {

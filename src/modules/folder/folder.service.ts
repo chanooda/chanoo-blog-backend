@@ -58,40 +58,27 @@ export class FolderService {
     file: Express.Multer.File,
   ): Promise<CommonResponse> {
     const folder = await this.folderRepository.getFolderById(id);
-    const isUniqueImages = await this.folderImageRepository.getFolderImageById(
-      id,
-      file,
-    );
-
     const filteredFile = file;
+    const checkFileNameReg = /\.[^/.]+$/;
+    const checkFileNumberReg = /(\(\d+\))$/;
+    const extension = filteredFile.originalname.match(checkFileNameReg);
+    const fileNumber = filteredFile.originalname.match(checkFileNumberReg)?.[0];
+    const fileName = filteredFile.originalname
+      .replace(checkFileNameReg, '')
+      .trim()
+      .replace(fileNumber, '');
+    const duplicateImageCount =
+      await this.folderImageRepository.getFolderImageById(id, fileName);
 
-    if (isUniqueImages) {
-      const checkFileNameReg = /\.[^/.]+$/;
-      const checkHasFileNumberReg = /[\w\d\s\D]+ (\(\d+\))$/;
-      const checkFileNumberReg = /(\(\d+\))$/;
-
-      const extension = filteredFile.originalname.match(checkFileNameReg);
-      const fileName = filteredFile.originalname
-        .replace(checkFileNameReg, '')
-        .trim();
-      const fileNumber = fileName.match(checkFileNumberReg)?.[0];
-
-      const checkHasFileNumber = checkHasFileNumberReg.test(fileName.trim());
-
+    if (duplicateImageCount > 0) {
       console.log(fileName.match(checkFileNumberReg));
-      console.log(checkHasFileNumber);
+      console.log(fileNumber);
       console.log(fileNumber);
 
-      if (checkHasFileNumber) {
-        filteredFile.originalname = `${fileName.replace(fileNumber, '')}(${
-          Number(fileNumber?.substring(1, fileNumber.length - 1)) + 1
-        })${extension}`;
-      } else {
-        filteredFile.originalname = `${fileName.replace(
-          fileNumber,
-          '',
-        )} (1)${extension}`;
-      }
+      filteredFile.originalname = `${fileName.replace(
+        fileNumber,
+        '',
+      )} (${duplicateImageCount})${extension}`;
     }
 
     const image = await this.awsRepository.imageUpload(folder.name, file);
@@ -131,5 +118,20 @@ export class FolderService {
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  async deleteFolderImage(id: number): Promise<CommonResponse> {
+    const folderImage = await this.folderImageRepository.deleteFolderImage(id);
+
+    const {
+      originalname,
+      folder: { name },
+    } = folderImage;
+    console.log(folderImage);
+    const awsResponse = await this.awsRepository.imageDelete(
+      name,
+      originalname,
+    );
+    return { status: 200 };
   }
 }

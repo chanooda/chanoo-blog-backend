@@ -130,4 +130,14 @@ export class FolderController {
     console.log(image);
     return this.folderService.uploadImageFolder(Number(id), image);
   }
+
+  @Delete('/:id/image')
+  @ApiParam({
+    name: 'id',
+    required: true,
+    type: 'string',
+  })
+  async deleteFolderImage(@Param('id') id: string) {
+    return await this.folderService.deleteFolderImage(+id);
+  }
 }

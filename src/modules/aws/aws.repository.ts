@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
+  DeleteObjectCommand,
+  DeleteObjectCommandInput,
   PutObjectCommand,
   PutObjectCommandInput,
   PutObjectCommandOutput,
@@ -84,6 +86,27 @@ export class AwsRepository implements IAws {
       });
 
       return images;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async imageDelete(folder: string, fileName: string) {
+    try {
+      const deleteObjectCommandInput: DeleteObjectCommandInput = {
+        Bucket: this.BUCKET_NAME,
+        Key: `${folder}/${fileName}`,
+      };
+      const command = new DeleteObjectCommand(deleteObjectCommandInput);
+      const awsResponse = await this.s3Client.send(command);
+
+      console.log('aws DeleteObjectCommandInput');
+      console.log(deleteObjectCommandInput);
+      console.log('');
+      console.log('aws response list');
+      console.log(awsResponse);
+
+      return awsResponse;
     } catch (error) {
       throw new Error(error);
     }
