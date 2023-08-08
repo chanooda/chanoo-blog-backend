@@ -1,5 +1,6 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Folder, FolderImage } from '@prisma/client';
 
 @Injectable()
 export class FolderImageRepository {
@@ -39,15 +40,14 @@ export class FolderImageRepository {
     }
   }
 
-  async getFolderImageById(
-    folderId: number,
-    file: Omit<Express.Multer.File, 'buffer'>,
-  ) {
-    const folderImage = await this.prisma.folderImage.findFirst({
+  async getFolderImageById(folderId: number, fileName: string) {
+    const folderImage = await this.prisma.folderImage.findMany({
       where: {
         AND: {
           folderId,
-          originalname: file.originalname,
+          originalname: {
+            contains: fileName,
+          },
         },
       },
     });
@@ -56,7 +56,7 @@ export class FolderImageRepository {
     console.log(folderImage);
     console.log('\n');
 
-    return folderImage;
+    return folderImage.length;
   }
 
   async getFolderImagesById(
@@ -81,5 +81,24 @@ export class FolderImageRepository {
     console.log('\n');
 
     return folderImages;
+  }
+
+  async deleteFolderImage(
+    id: number,
+  ): Promise<FolderImage & { folder: Folder }> {
+    try {
+      const folderImage = await this.prisma.folderImage.delete({
+        where: {
+          id,
+        },
+        include: {
+          folder: true,
+        },
+      });
+
+      return folderImage;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }
