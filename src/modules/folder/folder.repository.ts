@@ -49,6 +49,25 @@ export class FolderRepository {
     return folders;
   }
 
+  async getFolders(): Promise<GetFolderDataDto[]> {
+    try {
+      const folders = await this.prisma.folder.findMany({
+        include: {
+          child: true,
+          parent: true,
+          _count: {
+            select: {
+              folderImage: true,
+            },
+          },
+        },
+      });
+      return folders;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
   async getFolderById(id: number): Promise<GetFolderDataDto> {
     try {
       const folder = await this.prisma.folder.findUnique({
