@@ -7,13 +7,11 @@ import {
   Delete,
   Patch,
   UploadedFiles,
-  UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { FolderCreateDto } from './dto/folder-create.dto';
 import {
-  ApiConsumes,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -27,18 +25,26 @@ import {
 } from './dto/folders-response.dto';
 import { FolderUpdateDto } from './dto/folder-update.dto';
 import { ApiFile, ApiFiles } from 'src/common/decorater/file.decorator';
-import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('folders')
 @Controller('folders')
 export class FolderController {
   constructor(private readonly folderService: FolderService) {}
 
+  @ApiOperation({ summary: '모든 폴더 목록 가져오기 api' })
+  @ApiOkResponse({
+    type: GetFoldersDto,
+  })
+  @Get('')
+  getFolders(): Promise<CommonResponse<GetFolderDataDto[]>> {
+    return this.folderService.getFolders();
+  }
+
   @ApiOperation({ summary: '최상단 폴더 가져오기 api' })
   @ApiOkResponse({
     type: GetFoldersDto,
   })
-  @Get()
+  @Get('/root')
   getTopFolders(): Promise<CommonResponse<GetFolderDataDto[]>> {
     return this.folderService.getTopFolders();
   }

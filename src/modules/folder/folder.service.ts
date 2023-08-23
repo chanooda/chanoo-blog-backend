@@ -17,6 +17,14 @@ export class FolderService {
     private folderImageRepository: FolderImageRepository,
   ) {}
 
+  async getFolders(): Promise<CommonResponse<GetFolderDataDto[]>> {
+    const folders = await this.folderRepository.getFolders();
+    return {
+      status: HttpStatus.OK,
+      data: folders,
+    };
+  }
+
   async getTopFolders(): Promise<CommonResponse<GetFolderDataDto[]>> {
     const folders = await this.folderRepository.getTopFolders();
     return {
