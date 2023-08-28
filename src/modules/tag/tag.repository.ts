@@ -10,16 +10,22 @@ export class TagRepository {
   async create(createTagDto: CreateTagDto) {
     try {
       const { name } = createTagDto;
-      const tag = await this.prisma.tag.upsert({
-        create: {
+      const tag = await this.prisma.tag.create({
+        data: {
           name,
         },
-        update: {
-          name,
-        },
-        where: {
-          name,
-        },
+      });
+      return tag;
+    } catch (error) {
+      console.error(error);
+      throw new Error(error);
+    }
+  }
+
+  async createMany(tagNames: string[]) {
+    try {
+      const tag = await this.prisma.tag.createMany({
+        data: tagNames?.map((tag) => ({ name: tag })),
       });
       return tag;
     } catch (error) {
@@ -63,6 +69,22 @@ export class TagRepository {
     try {
       const tag = await this.prisma.tag.findMany();
       return tag;
+    } catch (error) {
+      console.error(error);
+      throw new Error(error);
+    }
+  }
+
+  async findMany(names: string[]) {
+    try {
+      const tags = await this.prisma.tag.findMany({
+        where: {
+          name: {
+            in: names,
+          },
+        },
+      });
+      return tags;
     } catch (error) {
       console.error(error);
       throw new Error(error);
