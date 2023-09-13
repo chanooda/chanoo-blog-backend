@@ -15,8 +15,8 @@ export class SeriesService {
     return await this.seriesRepository.findAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} series`;
+  async findOne(id: number) {
+    return await this.seriesRepository.findOne(id);
   }
 
   async update(id: number, updateSeriesDto: UpdateSeriesDto) {

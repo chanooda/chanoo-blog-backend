@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSeriesDto } from './dto/create-series.dto';
 import { Series } from '@prisma/client';
@@ -25,16 +25,6 @@ export class SeriesRepository {
       return series;
     } catch (error) {
       console.error(error);
-
-      //   if (e.code === 'P2002') {
-      //     throw new HttpException(
-      //       {
-      //         status: HttpStatus.NOT_FOUND,
-      //         error: '중복된 이름의 폴더입니다.',
-      //       },
-      //       HttpStatus.NOT_FOUND,
-      //     );
-      //   }
     }
   }
 
@@ -44,16 +34,51 @@ export class SeriesRepository {
       return series;
     } catch (error) {
       console.error(error);
+    }
+  }
 
-      //   if (e.code === 'P2002') {
-      //     throw new HttpException(
-      //       {
-      //         status: HttpStatus.NOT_FOUND,
-      //         error: '중복된 이름의 폴더입니다.',
-      //       },
-      //       HttpStatus.NOT_FOUND,
-      //     );
-      //   }
+  async findOne(id: number) {
+    try {
+      const series = await this.prisma.series.findUnique({
+        where: {
+          id,
+        },
+      });
+      return series;
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: '중복된 이름의 폴더입니다.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    }
+  }
+
+  async findOneWithWrite(id: number) {
+    try {
+      const series = await this.prisma.series.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          writes: true,
+        },
+      });
+      return series;
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: '중복된 이름의 폴더입니다.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
     }
   }
 
@@ -72,15 +97,15 @@ export class SeriesRepository {
     } catch (error) {
       console.error(error);
 
-      //   if (e.code === 'P2002') {
-      //     throw new HttpException(
-      //       {
-      //         status: HttpStatus.NOT_FOUND,
-      //         error: '중복된 이름의 폴더입니다.',
-      //       },
-      //       HttpStatus.NOT_FOUND,
-      //     );
-      //   }
+      if (error.code === 'P2002') {
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: '중복된 이름의 폴더입니다.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
     }
   }
 
@@ -95,15 +120,15 @@ export class SeriesRepository {
     } catch (error) {
       console.error(error);
 
-      //   if (e.code === 'P2002') {
-      //     throw new HttpException(
-      //       {
-      //         status: HttpStatus.NOT_FOUND,
-      //         error: '중복된 이름의 폴더입니다.',
-      //       },
-      //       HttpStatus.NOT_FOUND,
-      //     );
-      //   }
+      if (error.code === 'P2002') {
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: '중복된 이름의 폴더입니다.',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
     }
   }
 }

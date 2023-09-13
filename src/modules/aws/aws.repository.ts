@@ -8,6 +8,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { IAws } from './aws.abstract';
+import { v4 } from 'uuid';
 
 @Injectable()
 export class AwsRepository implements IAws {
@@ -41,9 +42,11 @@ export class AwsRepository implements IAws {
       const { buffer, ...restImage } = image;
 
       return {
-        url: `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
-          folder || ''
-        }/${image.originalname}`,
+        url: encodeURI(
+          `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
+            folder || ''
+          }/${image.originalname}`,
+        ),
         ...restImage,
       };
     } catch (error) {
@@ -78,9 +81,11 @@ export class AwsRepository implements IAws {
       const images = imageList?.map((image) => {
         const { buffer, ...restImage } = image;
         return {
-          url: `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
-            folder || ''
-          }/${image.originalname}`,
+          url: encodeURI(
+            `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
+              folder || ''
+            }/${image.originalname}`,
+          ),
           ...restImage,
         };
       });
