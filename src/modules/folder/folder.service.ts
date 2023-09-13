@@ -4,16 +4,15 @@ import { FolderRepository } from './folder.repository';
 import { CommonResponse } from 'src/common/dto/response.dto';
 import { GetFolderDataDto } from './dto/folders-response.dto';
 import { AwsRepository } from '../aws/aws.repository';
-import { ImageRepository } from '../image/Image.repository';
 import { FolderImageRepository } from '../folderImage/folderImage.repository';
 import { FolderUpdateDto } from './dto/folder-update.dto';
+import { FolderImage } from '@prisma/client';
 
 @Injectable()
 export class FolderService {
   constructor(
     private folderRepository: FolderRepository,
     private awsRepository: AwsRepository,
-    private imageRepository: ImageRepository,
     private folderImageRepository: FolderImageRepository,
   ) {}
 
@@ -49,14 +48,6 @@ export class FolderService {
     return await this.folderRepository.patchFolder(id, folderUpdateDto);
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} folder`;
-  // }
-
-  // update(id: number, updateFolderDto: UpdateFolderDto) {
-  //   return `This action updates a #${id} folder`;
-  // }
-
   deleteFolder(id: number) {
     return this.folderRepository.deleteFolder(id);
   }
@@ -64,7 +55,7 @@ export class FolderService {
   async uploadImageFolder(
     id: number,
     file: Express.Multer.File,
-  ): Promise<CommonResponse> {
+  ): Promise<CommonResponse<FolderImage>> {
     const folder = await this.folderRepository.getFolderById(id);
     const filteredFile = file;
     const checkFileNameReg = /\.[^/.]+$/;
@@ -90,9 +81,12 @@ export class FolderService {
     }
 
     const image = await this.awsRepository.imageUpload(folder.name, file);
-    await this.folderImageRepository.createFolderImage(id, image);
+    const folderImage = await this.folderImageRepository.createFolderImage(
+      id,
+      image,
+    );
 
-    return { status: 200 };
+    return { status: 200, data: folderImage };
   }
 
   async uploadImagesFolder(

@@ -6,12 +6,18 @@ import {
   Patch,
   Param,
   Delete,
+  HttpStatus,
 } from '@nestjs/common';
 import { TagService } from './tag.service';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Tag } from './entities/tag.entity';
+import {
+  GetTagWithWriteResDto,
+  GetTagsResDto,
+  TagResDto,
+} from './dto/response-tag.dto';
+import { CommonResponse } from 'src/common/dto/response.dto';
 
 @ApiTags('tag')
 @Controller('tag')
@@ -20,7 +26,7 @@ export class TagController {
 
   @ApiOperation({ summary: '태그 생성' })
   @ApiOkResponse({
-    type: Tag,
+    type: GetTagsResDto,
   })
   @Post()
   create(@Body() createTagDto: CreateTagDto) {
@@ -29,22 +35,29 @@ export class TagController {
 
   @ApiOperation({ summary: '태그 모두 가져오기' })
   @ApiOkResponse({
-    type: Tag,
-    isArray: true,
+    type: GetTagsResDto,
   })
   @Get()
-  findAll() {
-    return this.tagService.findAll();
+  async findAll(): Promise<CommonResponse<TagResDto[]>> {
+    const tags = await this.tagService.findAll();
+    return {
+      data: tags,
+      status: HttpStatus.OK,
+    };
   }
 
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.tagService.findOne(+id);
-  // }
+  @ApiOperation({ summary: '태그별 글 가져오기' })
+  @ApiOkResponse({
+    type: GetTagWithWriteResDto,
+  })
+  @Get(':id')
+  findOneWithWrite(@Param('id') id: string) {
+    return this.tagService.findOneWithWrite(+id);
+  }
 
   @ApiOperation({ summary: '태그 수정하기' })
   @ApiOkResponse({
-    type: Tag,
+    type: GetTagsResDto,
   })
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTagDto: UpdateTagDto) {
@@ -52,9 +65,6 @@ export class TagController {
   }
 
   @ApiOperation({ summary: '태그 지우기' })
-  @ApiOkResponse({
-    type: Tag,
-  })
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.tagService.remove(+id);

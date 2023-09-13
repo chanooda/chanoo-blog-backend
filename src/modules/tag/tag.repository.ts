@@ -90,4 +90,25 @@ export class TagRepository {
       throw new Error(error);
     }
   }
+
+  async findTagWithWrite(id: number) {
+    try {
+      const tags = await this.prisma.tag.findUnique({
+        where: {
+          id,
+        },
+        include: {
+          writes: {
+            include: {
+              write: true,
+            },
+          },
+        },
+      });
+      return tags;
+    } catch (error) {
+      console.error(error);
+      throw new Error(error);
+    }
+  }
 }

@@ -4,6 +4,7 @@ import { UpdateTagDto } from './dto/update-tag.dto';
 import { TagRepository } from './tag.repository';
 import { Tag } from '@prisma/client';
 import { CommonResponse } from 'src/common/dto/response.dto';
+import { TagResDto } from './dto/response-tag.dto';
 
 @Injectable()
 export class TagService {
@@ -17,12 +18,13 @@ export class TagService {
     };
   }
 
-  async findAll(): Promise<CommonResponse<Tag[]>> {
+  async findAll(): Promise<TagResDto[]> {
     const tags = await this.tagRepository.findAll();
-    return {
-      status: HttpStatus.OK,
-      data: tags,
-    };
+    return tags;
+  }
+
+  async findOneWithWrite(id: number) {
+    return await this.tagRepository.findTagWithWrite(id);
   }
 
   async update(
@@ -40,8 +42,4 @@ export class TagService {
     await this.tagRepository.delete(id);
     return { status: HttpStatus.OK };
   }
-
-  // findOne(id: number) {
-  //   return `This action returns a #${id} tag`;
-  // }
 }

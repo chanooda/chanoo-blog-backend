@@ -29,12 +29,13 @@ export class FolderImageRepository {
     try {
       const { path, stream, destination, encoding, ...fileInfo } = file;
 
-      await this.prisma.folderImage.create({
+      const image = await this.prisma.folderImage.create({
         data: {
           folderId,
           ...fileInfo,
         },
       });
+      return image;
     } catch (error) {
       throw new Error(error);
     }
