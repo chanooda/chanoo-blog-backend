@@ -8,6 +8,7 @@ import {
   Patch,
   UploadedFiles,
   UploadedFile,
+  UsePipes,
 } from '@nestjs/common';
 import { FolderService } from './folder.service';
 import { FolderCreateDto } from './dto/folder-create.dto';
@@ -25,6 +26,7 @@ import {
 } from './dto/folders-response.dto';
 import { FolderUpdateDto } from './dto/folder-update.dto';
 import { ApiFile, ApiFiles } from 'src/common/decorater/file.decorator';
+import { TransformImage } from 'src/pipe/image.pipe';
 
 @ApiTags('folders')
 @Controller('folders')
@@ -130,7 +132,7 @@ export class FolderController {
     type: 'string',
   })
   async uploadImageFolder(
-    @UploadedFile() image: Express.Multer.File,
+    @UploadedFile(new TransformImage()) image: Express.Multer.File,
     @Param('id') id: string,
   ) {
     console.log(image);
