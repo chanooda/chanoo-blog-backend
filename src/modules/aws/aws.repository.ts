@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
-  DeleteObjectCommandInput,
+  DeleteObjectCommandOutput,
+  DeleteObjectRequest,
   PutObjectCommand,
   PutObjectCommandInput,
   PutObjectCommandOutput,
   S3Client,
 } from '@aws-sdk/client-s3';
 import { IAws } from './aws.abstract';
+import { FolderImage } from '@prisma/client';
 
 @Injectable()
 export class AwsRepository implements IAws {
@@ -41,9 +43,11 @@ export class AwsRepository implements IAws {
       const { buffer, ...restImage } = image;
 
       return {
-        url: `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
-          folder || ''
-        }/${image.originalname}`,
+        url: encodeURI(
+          `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
+            folder || ''
+          }/${image.originalname}`,
+        ),
         ...restImage,
       };
     } catch (error) {
@@ -78,9 +82,11 @@ export class AwsRepository implements IAws {
       const images = imageList?.map((image) => {
         const { buffer, ...restImage } = image;
         return {
-          url: `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
-            folder || ''
-          }/${image.originalname}`,
+          url: encodeURI(
+            `https://${this.BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/${
+              folder || ''
+            }/${image.originalname}`,
+          ),
           ...restImage,
         };
       });
@@ -91,21 +97,18 @@ export class AwsRepository implements IAws {
     }
   }
 
-  async imageDelete(folder: string, fileName: string) {
+  async imageDelete(folder: string, image: FolderImage) {
+    const params: DeleteObjectRequest = {
+      Bucket: this.BUCKET_NAME,
+      Key: folder
+        ? `${folder}/${image.originalname}`
+        : `/${image.originalname}`,
+    };
+
+    const command = new DeleteObjectCommand(params);
+
     try {
-      const deleteObjectCommandInput: DeleteObjectCommandInput = {
-        Bucket: this.BUCKET_NAME,
-        Key: `${folder}/${fileName}`,
-      };
-      const command = new DeleteObjectCommand(deleteObjectCommandInput);
       const awsResponse = await this.s3Client.send(command);
-
-      console.log('aws DeleteObjectCommandInput');
-      console.log(deleteObjectCommandInput);
-      console.log('');
-      console.log('aws response list');
-      console.log(awsResponse);
-
       return awsResponse;
     } catch (error) {
       throw new Error(error);

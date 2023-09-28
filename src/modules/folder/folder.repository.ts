@@ -123,10 +123,11 @@ export class FolderRepository {
       });
       return;
     } catch (error) {
+      console.error(error);
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
-          error: '해당 id의 유저가 존재하지 않습니다.',
+          error: '해당 id의 폴더가 존재하지 않습니다.',
         },
         HttpStatus.NOT_FOUND,
         { cause: error },

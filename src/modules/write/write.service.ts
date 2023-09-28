@@ -2,42 +2,35 @@ import { Injectable } from '@nestjs/common';
 import { CreateWriteDto } from './dto/create-write.dto';
 import { UpdateWriteDto } from './dto/update-write.dto';
 import { WriteRepository } from './write.repository';
-import { PrismaService } from '../prisma/prisma.service';
-import { SeriesRepository } from '../series/series.repository';
-import { TagRepository } from '../tag/tag.repository';
-import { WriteTagRepository } from './writeTag.repository';
+import { WriteResDto } from './dto/response-write.dto';
+import { WriteFindAllDto } from './dto/find-write.dto';
 
 @Injectable()
 export class WriteService {
-  constructor(
-    private prisma: PrismaService,
-    private writeRepository: WriteRepository,
-    private seriesRepository: SeriesRepository,
-    private tagRepository: TagRepository,
-    private writeTagRepository: WriteTagRepository,
-  ) {}
+  constructor(private writeRepository: WriteRepository) {}
 
-  async create(createWriteDto: CreateWriteDto) {
+  async create(createWriteDto: CreateWriteDto): Promise<WriteResDto> {
     try {
       const write = await this.writeRepository.create(createWriteDto);
+      return write;
     } catch (error) {
       console.log(error);
     }
   }
 
-  async findAll() {
-    return await this.writeRepository.findAll();
+  async findAll(writeFindAllDto: WriteFindAllDto) {
+    return await this.writeRepository.findAll(writeFindAllDto);
   }
 
   async findOne(id: number) {
     return await this.writeRepository.findOne(id);
   }
 
-  update(id: number, updateWriteDto: UpdateWriteDto) {
-    return `This action updates a #${id} write`;
+  async update(id: number, updateWriteDto: UpdateWriteDto) {
+    return await this.writeRepository.update(id, updateWriteDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} write`;
+  async remove(id: number) {
+    return await this.writeRepository.delete(id);
   }
 }
