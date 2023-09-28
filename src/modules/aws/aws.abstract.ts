@@ -1,5 +1,5 @@
 import { S3Client } from '@aws-sdk/client-s3';
-import { FolderImage } from '@prisma/client';
+import { FolderImage } from '.prisma/client';
 export interface IAws {
   s3Client: S3Client;
   BUCKET_NAME: string;

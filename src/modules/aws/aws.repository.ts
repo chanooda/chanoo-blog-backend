@@ -9,7 +9,7 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { IAws } from './aws.abstract';
-import { FolderImage } from '@prisma/client';
+import { FolderImage } from '.prisma/client';
 
 @Injectable()
 export class AwsRepository implements IAws {

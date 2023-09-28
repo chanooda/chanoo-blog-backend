@@ -6,7 +6,7 @@ import { GetFolderDataDto } from './dto/folders-response.dto';
 import { AwsRepository } from '../aws/aws.repository';
 import { FolderImageRepository } from '../folderImage/folderImage.repository';
 import { FolderUpdateDto } from './dto/folder-update.dto';
-import { FolderImage } from '@prisma/client';
+import { FolderImage } from '.prisma/client';
 import { getExtension, getFileName, getFileNumber } from 'src/utils/fileUtils';
 
 @Injectable()

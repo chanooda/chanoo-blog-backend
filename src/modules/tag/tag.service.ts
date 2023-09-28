@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { TagRepository } from './tag.repository';
-import { Tag } from '@prisma/client';
+import { Tag } from '.prisma/client';
 import { CommonResponse } from 'src/common/dto/response.dto';
 import { TagResDto } from './dto/response-tag.dto';
 

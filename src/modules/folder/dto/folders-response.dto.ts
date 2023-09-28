@@ -1,4 +1,4 @@
-import { Folder } from '@prisma/client';
+import { Folder } from '.prisma/client';
 import { ApiProperty, getSchemaPath } from '@nestjs/swagger';
 
 export class BaseFolderDto {

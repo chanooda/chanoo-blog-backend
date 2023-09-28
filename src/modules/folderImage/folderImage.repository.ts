@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Folder, FolderImage } from '@prisma/client';
+import { Folder, FolderImage } from '.prisma/client';
 
 @Injectable()
 export class FolderImageRepository {

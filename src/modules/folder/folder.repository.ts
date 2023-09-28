@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/prisma/prisma.service';
 import { FolderCreateDto } from './dto/folder-create.dto';
-import { Folder } from '@prisma/client';
+import { Folder } from '.prisma/client';
 import { GetFolderDataDto } from './dto/folders-response.dto';
 import { FolderUpdateDto } from './dto/folder-update.dto';
 
