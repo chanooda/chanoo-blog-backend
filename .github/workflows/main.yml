@@ -8,6 +8,8 @@ on:
   # 여기서는 간단히 dev 브런치에서 push되면서 이 workflow가 실행 되도록 하겠습니다.
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
   # 이부분은 위의 trigger가 없어도 수동으로 동작 할 수 있게끔 해주는 역할을 합니다.
   workflow_dispatch:
@@ -48,7 +50,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: | 
+          pnpm install
+          prisma generate
 
       - name: Build production bundle
         run: pnpm build
@@ -64,7 +68,6 @@ jobs:
           mkdir deploy
           mv dist deploy/dist
           mv package.json deploy
-          mv after-install.sh deploy
           mv appspec.yml deploy
           mv Dockerfile deploy
 
@@ -89,4 +92,4 @@ jobs:
           --application-name chanoo-deploy
           --deployment-config-name CodeDeployDefault.OneAtATime
           --deployment-group-name blog-backend
-          --s3-location bucket=chanoo-deploy,bundleType=tgz,key=stock/deploy.tar.gz
+          --s3-location bucket=chanoo-deploy,bundleType=tgz,key=blog-backend/deploy.tar.gz

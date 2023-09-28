@@ -7,6 +7,7 @@ import { AwsRepository } from '../aws/aws.repository';
 import { FolderImageRepository } from '../folderImage/folderImage.repository';
 import { FolderUpdateDto } from './dto/folder-update.dto';
 import { FolderImage } from '@prisma/client';
+import { getExtension, getFileName, getFileNumber } from 'src/utils/fileUtils';
 
 @Injectable()
 export class FolderService {
@@ -58,29 +59,25 @@ export class FolderService {
   ): Promise<CommonResponse<FolderImage>> {
     const folder = await this.folderRepository.getFolderById(id);
     const filteredFile = file;
-    const checkFileNameReg = /\.[^/.]+$/;
-    const checkFileNumberReg = /(\(\d+\))$/;
-    const extension = filteredFile.originalname.match(checkFileNameReg);
-    const fileNumber = filteredFile.originalname.match(checkFileNumberReg)?.[0];
-    const fileName = filteredFile.originalname
-      .replace(checkFileNameReg, '')
-      .trim()
-      .replace(fileNumber, '');
+    const fileName = filteredFile.originalname;
+
+    const fileNumber = getFileNumber(filteredFile.originalname);
+
     const duplicateImageCount =
       await this.folderImageRepository.getFolderImageById(id, fileName);
 
     if (duplicateImageCount > 0) {
-      console.log(fileName.match(checkFileNumberReg));
-      console.log(fileNumber);
-      console.log(fileNumber);
-
       filteredFile.originalname = `${fileName.replace(
         fileNumber,
         '',
-      )} (${duplicateImageCount})${extension}`;
+      )} (${duplicateImageCount})`;
     }
 
-    const image = await this.awsRepository.imageUpload(folder.name, file);
+    const image = await this.awsRepository.imageUpload(
+      folder.name,
+      filteredFile,
+    );
+
     const folderImage = await this.folderImageRepository.createFolderImage(
       id,
       image,
@@ -126,14 +123,11 @@ export class FolderService {
     const folderImage = await this.folderImageRepository.deleteFolderImage(id);
 
     const {
-      originalname,
       folder: { name },
+      ...image
     } = folderImage;
     console.log(folderImage);
-    const awsResponse = await this.awsRepository.imageDelete(
-      name,
-      originalname,
-    );
+    const awsResponse = await this.awsRepository.imageDelete(name, image);
     return { status: 200 };
   }
 }

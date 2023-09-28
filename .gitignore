@@ -4,6 +4,8 @@ node_modules
 .pnpm-store
 
 .env
+.env.produnction
+.env.development
 
 # Logs
 logs
