@@ -52,10 +52,11 @@ jobs:
       - name: Install dependencies
         run: | 
           pnpm install
-          pnpm exec prisma generate
 
       - name: Build production bundle
-        run: pnpm build
+        run: |
+          pnpm build
+          pnpm exec prisma generate
 
       - name: Create .env file
         run: |
