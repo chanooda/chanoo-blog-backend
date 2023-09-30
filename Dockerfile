@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:18-slim
 
 # 앱 디렉터리 생성
 WORKDIR /usr/src/app
