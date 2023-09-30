@@ -71,6 +71,7 @@ jobs:
           mv package.json deploy
           mv appspec.yml deploy
           mv after-install.sh deploy
+          mv after-run-docker deploy
           mv Dockerfile deploy
           mv .env deploy
 
