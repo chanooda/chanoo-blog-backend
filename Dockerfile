@@ -5,6 +5,8 @@ WORKDIR /usr/src/app
 COPY . .
 
 
+RUN apt-get update -y
+RUN apt-get install -y openssl
 RUN npm i -g pnpm
 RUN pnpm install
 
