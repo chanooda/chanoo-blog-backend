@@ -55,8 +55,8 @@ jobs:
 
       - name: Build production bundle
         run: |
-          pnpm build
           pnpm exec prisma generate
+          pnpm build
 
       - name: Create .env file
         run: |
