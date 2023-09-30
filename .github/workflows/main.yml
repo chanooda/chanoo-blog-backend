@@ -72,6 +72,7 @@ jobs:
           mv appspec.yml deploy
           mv after-install.sh deploy
           mv Dockerfile deploy
+          mv prisma deploy
           mv .env deploy
 
       - name: archive build
