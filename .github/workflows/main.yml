@@ -77,7 +77,7 @@ jobs:
           mv prisma deploy
           mv .env deploy
           mv docker-entrypoint.sh deploy
-          
+          ls deploy
 
       - name: archive build
         run: |
