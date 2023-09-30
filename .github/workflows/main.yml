@@ -60,13 +60,14 @@ jobs:
 
       - name: Create .env file
         run: |
+          touch .env    
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
+          cat .env
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
       - name: directory
         run: |
-          cat .env
           mkdir deploy
           mv dist deploy/dist
           mv package.json deploy
