@@ -7,6 +7,7 @@ COPY . .
 RUN chmod +x ./after-run-docker.sh
 
 RUN npm i -g pnpm
+RUN pnpm install
 
 EXPOSE 4000
-CMD ["nohup","./after-run-docker.sh", "&"]
+CMD ["nohup", "node", "dist/main.js", "&"]
