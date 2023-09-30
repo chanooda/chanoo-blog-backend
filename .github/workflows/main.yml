@@ -66,6 +66,7 @@ jobs:
 
       - name: directory
         run: |
+          cat .env
           mkdir deploy
           mv dist deploy/dist
           mv package.json deploy
