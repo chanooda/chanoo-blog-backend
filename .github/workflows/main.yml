@@ -70,7 +70,9 @@ jobs:
           mv dist deploy/dist
           mv package.json deploy
           mv appspec.yml deploy
+          mv after-install.sh deploy
           mv Dockerfile deploy
+          mv .env deploy
 
       - name: archive build
         run: |

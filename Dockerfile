@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 RUN npm i -g pnpm
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 # 프로덕션을 위한 코드를 빌드하는 경우
 # RUN npm ci --only=production
 
