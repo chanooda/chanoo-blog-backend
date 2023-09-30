@@ -52,10 +52,11 @@ jobs:
       - name: Install dependencies
         run: | 
           pnpm install
-          npx prisma generate
 
       - name: Build production bundle
-        run: pnpm build
+        run: |
+          pnpm exec prisma generate
+          pnpm build
 
       - name: Create .env file
         run: |
@@ -69,7 +70,9 @@ jobs:
           mv dist deploy/dist
           mv package.json deploy
           mv appspec.yml deploy
+          mv after-install.sh deploy
           mv Dockerfile deploy
+          mv .env deploy
 
       - name: archive build
         run: |
