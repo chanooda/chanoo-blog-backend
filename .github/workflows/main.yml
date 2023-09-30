@@ -52,7 +52,7 @@ jobs:
       - name: Install dependencies
         run: | 
           pnpm install
-          npx prisma generate
+          pnpm exec prisma generate
 
       - name: Build production bundle
         run: pnpm build

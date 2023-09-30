@@ -8,7 +8,7 @@ services:
     volumes: 
       - .:/app
     env_file: ./.env
-    command: sh -c "npm i -g pnpm && pnpm install --frozen-lockfile"
+    command: sh -c "apt-get update -y && apt-get install -y openssl && npm i -g pnpm && pnpm install --force && prisma generate"
    
   server:
     image: node:18-slim
@@ -17,7 +17,8 @@ services:
       - .:/app
     env_file: ./.env
     depends_on:
-      - module
-    command: sh -c "apt-get update -y && apt-get install -y openssl && npm i -g pnpm && pnpm start:dev"
+      module:
+        condition: service_completed_successfully
+    command: sh -c "npm i -g pnpm && pnpm start:dev"
     ports:
       - 4000:4000
