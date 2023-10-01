@@ -62,8 +62,7 @@ jobs:
         run: |
           touch .env    
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
-          cat .env
-          ls -a
+          
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
@@ -78,13 +77,11 @@ jobs:
           mv prisma deploy
           mv .env deploy
           mv docker-entrypoint.sh deploy
-          ls -a deploy
-
+          
       - name: archive build
         run: |
           cd deploy
-          tar cvfz ./deploy.tar.gz .
-          ls -a
+          tar *.tar.gz cvfz ./deploy.tar.gz -–exclude=deploy.tar.gz ./.
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v1
