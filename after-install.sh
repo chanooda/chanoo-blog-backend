@@ -1,4 +1,6 @@
 cd /home/ubuntu/blog-backend
+docker stop blog-backend
+docker rm blog-backend
 docker image rm blog-backend
 docker build -t blog-backend .
 docker rm --force blog-backend
