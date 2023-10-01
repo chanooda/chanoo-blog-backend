@@ -83,7 +83,7 @@ jobs:
       - name: archive build
         run: |
           cd deploy
-          tar cvfz ./deploy.tar.gz ./.
+          tar cvfz ./deploy.tar.gz .
           ls -a
 
       - name: AWS configure credentials
