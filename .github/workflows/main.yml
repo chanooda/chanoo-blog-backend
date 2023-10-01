@@ -81,7 +81,7 @@ jobs:
       - name: archive build
         run: |
           cd deploy
-          tar *.tar.gz cvfz ./deploy.tar.gz -–exclude "deploy.tar.gz" ./.
+          tar cvfz ./deploy.tar.gz -–exclude "deploy.tar.gz" ./.
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v1
