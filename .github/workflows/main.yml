@@ -76,15 +76,15 @@ jobs:
           mv after-install.sh deploy
           mv Dockerfile deploy
           mv prisma deploy
-          cp .env deploy
+          cp -r .env deploy
           mv docker-entrypoint.sh deploy
-          ls deploy
+          ls -a deploy
 
       - name: archive build
         run: |
           cd deploy
           tar cvfz ./deploy.tar.gz *
-          ls
+          ls -a
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v1
