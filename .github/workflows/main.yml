@@ -63,6 +63,7 @@ jobs:
           touch .env    
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
           cat .env
+          ls
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
