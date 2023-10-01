@@ -63,7 +63,7 @@ jobs:
           touch .env    
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
           cat .env
-          ls
+          ls -a
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
@@ -76,7 +76,7 @@ jobs:
           mv after-install.sh deploy
           mv Dockerfile deploy
           mv prisma deploy
-          mv .env deploy
+          cp .env deploy
           mv docker-entrypoint.sh deploy
           ls deploy
 
