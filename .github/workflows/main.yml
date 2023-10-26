@@ -19,7 +19,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     runs-on: ubuntu-latest
-
+    environment : github-action
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: checkout release
@@ -60,7 +60,9 @@ jobs:
 
       - name: Create .env file
         run: |
+          touch .env    
           jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
+          
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
@@ -72,13 +74,13 @@ jobs:
           mv appspec.yml deploy
           mv after-install.sh deploy
           mv Dockerfile deploy
+          mv prisma deploy
           mv .env deploy
-
+          mv docker-entrypoint.sh deploy
+          
       - name: archive build
         run: |
-          cd deploy
-          tar cvfz ./deploy.tar.gz *
-          ls
+          tar cvfz ./deploy.tar.gz ./deploy/.
 
       - name: AWS configure credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -88,7 +90,7 @@ jobs:
           aws-region: ap-northeast-2
 
       - name: upload to S3
-        run: aws s3 cp --region ap-northeast-2 ./deploy/deploy.tar.gz s3://chanoo-deploy/blog-backend/
+        run: aws s3 cp --region ap-northeast-2 ./deploy.tar.gz s3://chanoo-deploy/blog-backend/
 
       - name: deploy with AWS codeDeploy
         run: aws deploy create-deployment

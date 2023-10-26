@@ -4,9 +4,12 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-RUN chmod +x ./after-run-docker.sh
 
+RUN apt-get update -y
+RUN apt-get install -y openssl
 RUN npm i -g pnpm
 
+
 EXPOSE 4000
-CMD ["nohup","./after-run-docker.sh", "&"]
+RUN chmod +x docker-entrypoint.sh 
+CMD ["nohup" ,"./docker-entrypoint.sh", "&"]
