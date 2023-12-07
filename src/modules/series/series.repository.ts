@@ -43,6 +43,9 @@ export class SeriesRepository {
         where: {
           id,
         },
+        include: {
+          writes: true,
+        },
       });
       return series;
     } catch (error) {

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
-  DeleteObjectCommandOutput,
   DeleteObjectRequest,
   PutObjectCommand,
   PutObjectCommandInput,

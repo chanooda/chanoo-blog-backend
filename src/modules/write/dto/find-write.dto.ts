@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Pagination } from 'src/common/dto/request.dto';
 
 export class WriteFindAllDto extends Pagination {
@@ -30,4 +30,14 @@ export class WriteFindAllDto extends Pagination {
     required: false,
   })
   seriesId?: number;
+
+  @Type(() => Boolean)
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty({
+    name: 'isPublish',
+    description: '공개/비공개',
+    required: false,
+  })
+  isPublish?: boolean;
 }

@@ -1,11 +1,5 @@
-import {
-  ApiProperty,
-  OmitType,
-  PartialType,
-  getSchemaPath,
-} from '@nestjs/swagger';
+import { ApiProperty, PartialType, getSchemaPath } from '@nestjs/swagger';
 import { CreateWriteDto } from './create-write.dto';
-import { IsOptional, IsString } from 'class-validator';
 import { CreateTagDto } from 'src/modules/tag/dto/create-tag.dto';
 
 export class UpdateWritesTags extends CreateTagDto {

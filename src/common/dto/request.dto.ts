@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber, IsOptional } from 'class-validator';
 
 export class Pagination {
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   @ApiProperty({
@@ -11,6 +13,7 @@ export class Pagination {
   })
   page?: number;
 
+  @Type(() => Number)
   @IsNumber()
   @IsOptional()
   @ApiProperty({
