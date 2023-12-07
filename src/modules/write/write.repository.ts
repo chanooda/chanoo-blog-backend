@@ -2,14 +2,15 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWriteDto } from './dto/create-write.dto';
 import { UpdateWriteDto } from './dto/update-write.dto';
-import { WriteResDto } from './dto/response-write.dto';
 import { WriteFindAllDto } from './dto/find-write.dto';
+import { Prisma } from '@prisma/client';
+import { IdRes } from 'src/common/dto/response.dto';
 
 @Injectable()
 export class WriteRepository {
   constructor(private prisma: PrismaService) {}
 
-  async create(createWriteDto: CreateWriteDto): Promise<WriteResDto> {
+  async create(createWriteDto: CreateWriteDto): Promise<IdRes> {
     const { content, isPublish, title, imgUrl, seriesName, tagNames } =
       createWriteDto;
 
@@ -17,9 +18,9 @@ export class WriteRepository {
 
     try {
       const write = await this.prisma.$transaction(async (tx) => {
-        return await tx.write.create({
+        const write = await tx.write.create({
           data: {
-            isPublish: Boolean(isPublish),
+            isPublish,
             title,
             content,
             ...(imgUrl && { imgUrl }),
@@ -54,15 +55,39 @@ export class WriteRepository {
               }),
           },
         });
+
+        const series = await tx.series.findFirst({
+          where: {
+            name: seriesName,
+          },
+        });
+
+        const seriesOrder: Prisma.JsonArray =
+          (series.writeOrder as Prisma.JsonArray) || [];
+
+        await tx.series.update({
+          where: {
+            name: seriesName,
+          },
+          data: {
+            writeOrder: [...seriesOrder, write.id],
+          },
+        });
+
+        return write;
       });
 
-      return write;
+      return { id: write.id };
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      throw new HttpException(
+        { error, status: HttpStatus.BAD_REQUEST },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
-  async update(id: number, updateWriteDto: UpdateWriteDto) {
+  async update(id: number, updateWriteDto: UpdateWriteDto): Promise<IdRes> {
     const { content, isPublish, title, imgUrl, seriesName, tagNames } =
       updateWriteDto;
 
@@ -71,9 +96,8 @@ export class WriteRepository {
     console.log(updateWriteDto);
 
     try {
-      await this.prisma.$transaction(async (tx) => {
+      const write = await this.prisma.$transaction(async (tx) => {
         const deletedWritesTags = [];
-        const createtWroteTags = [];
 
         const writesTags = await tx.writesTag.findMany({
           where: {
@@ -100,7 +124,7 @@ export class WriteRepository {
 
         const write = await tx.write.update({
           data: {
-            isPublish: Boolean(isPublish),
+            isPublish,
             title,
             content,
             ...(imgUrl && { imgUrl }),
@@ -141,13 +165,19 @@ export class WriteRepository {
 
         return write;
       });
+      return { id: write.id };
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      throw new HttpException(
+        { error, status: HttpStatus.BAD_REQUEST },
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
   async findAll(writeFindAllDto: WriteFindAllDto) {
-    const { limit, page, search, seriesId, tagId } = writeFindAllDto;
+    const { limit, page, search, seriesId, tagId, isPublish } = writeFindAllDto;
+
     try {
       const prisma = this.prisma.$extends({
         result: {
@@ -178,6 +208,7 @@ export class WriteRepository {
             },
           }),
           ...(seriesId && { seriesId }),
+          ...(isPublish && { isPublish }),
         },
         include: {
           series: true,
@@ -202,7 +233,16 @@ export class WriteRepository {
           id,
         },
         include: {
-          series: true,
+          series: {
+            include: {
+              writes: {
+                select: {
+                  id: true,
+                  title: true,
+                },
+              },
+            },
+          },
           tags: {
             include: {
               tag: true,
@@ -234,10 +274,64 @@ export class WriteRepository {
 
   async delete(id: number) {
     try {
-      await this.prisma.write.delete({
-        where: {
-          id,
-        },
+      this.prisma.$transaction(async (tx) => {
+        const write = await tx.write.delete({
+          where: {
+            id,
+          },
+          include: {
+            tags: {
+              select: {
+                tag: {
+                  select: {
+                    id: true,
+                    writes: {
+                      take: 1,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        });
+        // 시리즈의 글이 없으면 삭제
+        const series = await tx.series.findFirst({
+          where: {
+            id: write.seriesId,
+          },
+          include: {
+            writes: {
+              select: {
+                _count: true,
+              },
+            },
+          },
+        });
+        if (series.writes.length === 0) {
+          await tx.series.delete({
+            where: {
+              id: series.id,
+            },
+          });
+        }
+        // 글이 없는 tag가 있으면 삭제
+        const writeTag = write.tags.filter(
+          (writeTag) => writeTag.tag.writes.length === 1,
+        );
+        console.log(write);
+        console.log('-------------------------');
+        console.log(writeTag);
+        console.log('-------------------------');
+        console.log(writeTag.map((tag) => tag.tag.id));
+        if (writeTag.length > 0) {
+          await tx.tag.deleteMany({
+            where: {
+              id: {
+                in: writeTag.map((tag) => tag.tag.id),
+              },
+            },
+          });
+        }
       });
     } catch (error) {
       throw new HttpException(

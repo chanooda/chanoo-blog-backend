@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateWriteDto {
   @ApiProperty({
@@ -16,12 +17,17 @@ export class CreateWriteDto {
   @IsNotEmpty()
   content: string;
 
+  @Transform(({ value }) => {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return value;
+  })
   @ApiProperty({
     description: '글 게시 여부',
   })
-  @IsString()
+  @IsBoolean()
   @IsNotEmpty()
-  isPublish: 'true' | 'false';
+  isPublish: boolean;
 
   @ApiProperty({
     description: '글 메인 이미지 url',

@@ -17,16 +17,14 @@ import {
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { NoFilesInterceptor } from '@nestjs/platform-express';
-import { CommonResponse } from 'src/common/dto/response.dto';
+import { CommonResponse, IdReq, IdRes } from 'src/common/dto/response.dto';
 import {
   GetWriteDto,
   GetWritesDto,
   WriteFullResDto,
-  WriteResDto,
 } from './dto/response-write.dto';
 import { WriteFindAllDto } from './dto/find-write.dto';
 
@@ -41,11 +39,11 @@ export class WriteController {
   @UseInterceptors(NoFilesInterceptor())
   async create(
     @Body() createWriteDto: CreateWriteDto,
-  ): Promise<CommonResponse<WriteResDto>> {
-    const write = await this.writeService.create(createWriteDto);
+  ): Promise<CommonResponse<IdRes>> {
+    const id = await this.writeService.create(createWriteDto);
     return {
       status: HttpStatus.OK,
-      data: write,
+      data: id,
     };
   }
 
@@ -53,7 +51,10 @@ export class WriteController {
   @ApiConsumes('multipart/form-data')
   @Patch(':id')
   @UseInterceptors(NoFilesInterceptor())
-  update(@Param('id') id: string, @Body() updateWriteDto: UpdateWriteDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateWriteDto: UpdateWriteDto,
+  ): Promise<IdRes> {
     return this.writeService.update(+id, updateWriteDto);
   }
 
@@ -79,7 +80,7 @@ export class WriteController {
     type: GetWriteDto,
   })
   async findOne(
-    @Param('id') id: string,
+    @Param() { id }: IdReq,
   ): Promise<CommonResponse<WriteFullResDto>> {
     const write = await this.writeService.findOne(+id);
     return {
@@ -89,7 +90,7 @@ export class WriteController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param() { id }: IdReq) {
     await this.writeService.remove(+id);
     return {
       status: HttpStatus.OK,
