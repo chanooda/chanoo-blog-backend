@@ -46,7 +46,7 @@ export class FolderRepository {
       },
     });
 
-    return folders;
+    return folders || [];
   }
 
   async getFolders(): Promise<GetFolderDataDto[]> {
@@ -62,7 +62,7 @@ export class FolderRepository {
           },
         },
       });
-      return folders;
+      return folders || [];
     } catch (error) {
       throw new Error(error);
     }

@@ -68,7 +68,7 @@ export class TagRepository {
   async findAll() {
     try {
       const tag = await this.prisma.tag.findMany();
-      return tag;
+      return tag || [];
     } catch (error) {
       console.error(error);
       throw new Error(error);
@@ -84,7 +84,7 @@ export class TagRepository {
           },
         },
       });
-      return tags;
+      return tags || [];
     } catch (error) {
       console.error(error);
       throw new Error(error);
@@ -105,7 +105,7 @@ export class TagRepository {
           },
         },
       });
-      return tags;
+      return tags || [];
     } catch (error) {
       console.error(error);
       throw new Error(error);
