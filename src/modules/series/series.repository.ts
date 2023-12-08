@@ -31,7 +31,7 @@ export class SeriesRepository {
   async findAll() {
     try {
       const series = await this.prisma.series.findMany({});
-      return series;
+      return series || [];
     } catch (error) {
       console.error(error);
     }

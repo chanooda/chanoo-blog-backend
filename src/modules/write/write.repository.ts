@@ -220,7 +220,7 @@ export class WriteRepository {
         },
       });
 
-      return writes;
+      return writes || [];
     } catch (error) {
       console.error(error);
     }

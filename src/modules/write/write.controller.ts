@@ -66,7 +66,6 @@ export class WriteController {
   async findAll(
     @Query() writeFindAllDto: WriteFindAllDto,
   ): Promise<CommonResponse<WriteFullResDto[]>> {
-    console.log(writeFindAllDto);
     const writes = await this.writeService.findAll(writeFindAllDto);
     return {
       status: HttpStatus.OK,
