@@ -1,32 +1,32 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseInterceptors,
+  Get,
   HttpStatus,
+  Param,
+  Patch,
+  Post,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
-import { WriteService } from './write.service';
-import { CreateWriteDto } from './dto/create-write.dto';
-import { UpdateWriteDto } from './dto/update-write.dto';
+import { NoFilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiConsumes,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { NoFilesInterceptor } from '@nestjs/platform-express';
 import { CommonResponse, IdReq, IdRes } from 'src/common/dto/response.dto';
+import { CreateWriteDto } from './dto/create-write.dto';
+import { WriteFindAllDto } from './dto/find-write.dto';
 import {
   GetWriteDto,
   GetWritesDto,
   WriteFullResDto,
 } from './dto/response-write.dto';
-import { WriteFindAllDto } from './dto/find-write.dto';
+import { UpdateWriteDto } from './dto/update-write.dto';
+import { WriteService } from './write.service';
 
 @ApiTags('write')
 @Controller('write')
@@ -81,18 +81,27 @@ export class WriteController {
   async findOne(
     @Param() { id }: IdReq,
   ): Promise<CommonResponse<WriteFullResDto>> {
-    const write = await this.writeService.findOne(+id);
-    return {
-      status: HttpStatus.OK,
-      data: write,
-    };
+    try {
+      const write = await this.writeService.findOne(+id);
+      return {
+        status: HttpStatus.OK,
+        data: write,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Delete(':id')
   async remove(@Param() { id }: IdReq) {
-    await this.writeService.remove(+id);
-    return {
-      status: HttpStatus.OK,
-    };
+    try {
+      await this.writeService.remove(+id);
+
+      return {
+        status: HttpStatus.OK,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

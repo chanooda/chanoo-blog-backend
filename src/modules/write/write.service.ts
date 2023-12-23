@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { IdRes } from 'src/common/dto/response.dto';
 import { CreateWriteDto } from './dto/create-write.dto';
+import { WriteFindAllDto } from './dto/find-write.dto';
 import { UpdateWriteDto } from './dto/update-write.dto';
 import { WriteRepository } from './write.repository';
-import { WriteFindAllDto } from './dto/find-write.dto';
-import { IdRes } from 'src/common/dto/response.dto';
 
 @Injectable()
 export class WriteService {
@@ -14,12 +14,16 @@ export class WriteService {
       const write = await this.writeRepository.create(createWriteDto);
       return write;
     } catch (error) {
-      console.log(error);
+      return error;
     }
   }
 
   async findAll(writeFindAllDto: WriteFindAllDto) {
-    return await this.writeRepository.findAll(writeFindAllDto);
+    try {
+      return await this.writeRepository.findAll(writeFindAllDto);
+    } catch (error) {
+      return error;
+    }
   }
 
   async findOne(id: number) {
@@ -27,11 +31,14 @@ export class WriteService {
   }
 
   async update(id: number, updateWriteDto: UpdateWriteDto) {
-    return await this.writeRepository.update(id, updateWriteDto);
+    try {
+      return await this.writeRepository.update(id, updateWriteDto);
+    } catch (error) {
+      return error;
+    }
   }
 
   async remove(id: number) {
-    await this.writeRepository.delete(id);
-    return;
+    return await this.writeRepository.delete(id);
   }
 }
