@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Series } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSeriesDto } from './dto/create-series.dto';
-import { Series } from '@prisma/client';
 import { UpdateSeriesDto } from './dto/update-series.dto';
 
 @Injectable()
@@ -44,7 +44,11 @@ export class SeriesRepository {
           id,
         },
         include: {
-          writes: true,
+          writes: {
+            where: {
+              isPublish: true,
+            },
+          },
         },
       });
       return series;
