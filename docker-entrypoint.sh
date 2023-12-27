@@ -1,3 +1,3 @@
-pnpm exec prisma generate
+npx prisma generate
 pnpm install
 node dist/main.js
