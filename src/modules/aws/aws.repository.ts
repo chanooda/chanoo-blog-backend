@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   DeleteObjectCommand,
   DeleteObjectRequest,
@@ -7,8 +6,9 @@ import {
   PutObjectCommandOutput,
   S3Client,
 } from '@aws-sdk/client-s3';
-import { IAws } from './aws.abstract';
+import { Injectable } from '@nestjs/common';
 import { FolderImage } from '@prisma/client';
+import { IAws } from './aws.abstract';
 
 @Injectable()
 export class AwsRepository implements IAws {

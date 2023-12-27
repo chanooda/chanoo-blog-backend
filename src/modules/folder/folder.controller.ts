@@ -1,32 +1,31 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
   Patch,
-  UploadedFiles,
+  Post,
   UploadedFile,
-  UsePipes,
+  UploadedFiles,
 } from '@nestjs/common';
-import { FolderService } from './folder.service';
-import { FolderCreateDto } from './dto/folder-create.dto';
 import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { ApiFile, ApiFiles } from 'src/common/decorater/file.decorator';
 import { CommonResponse } from 'src/common/dto/response.dto';
+import { TransformImage } from 'src/pipe/image.pipe';
+import { FolderCreateDto } from './dto/folder-create.dto';
+import { FolderUpdateDto } from './dto/folder-update.dto';
 import {
   GetFolderDataDto,
   GetFolderDto,
   GetFoldersDto,
 } from './dto/folders-response.dto';
-import { FolderUpdateDto } from './dto/folder-update.dto';
-import { ApiFile, ApiFiles } from 'src/common/decorater/file.decorator';
-import { TransformImage } from 'src/pipe/image.pipe';
+import { FolderService } from './folder.service';
 
 @ApiTags('folders')
 @Controller('folders')

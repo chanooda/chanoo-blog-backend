@@ -41,4 +41,8 @@ export class WriteService {
   async remove(id: number) {
     return await this.writeRepository.delete(id);
   }
+
+  async writeIdList() {
+    return await this.writeRepository.writeIdList();
+  }
 }

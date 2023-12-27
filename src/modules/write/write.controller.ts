@@ -104,4 +104,16 @@ export class WriteController {
       throw error;
     }
   }
+
+  @Get('/id-list')
+  async writeIdList() {
+    try {
+      return {
+        status: HttpStatus.OK,
+        data: await this.writeService.writeIdList(),
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
 }
