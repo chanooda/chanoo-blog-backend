@@ -248,6 +248,9 @@ export class WriteRepository {
             },
           },
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
 
       console.log([]);
@@ -406,6 +409,24 @@ export class WriteRepository {
           error: error,
         },
         HttpStatus.EXPECTATION_FAILED,
+      );
+    }
+  }
+  async writeIdList() {
+    try {
+      const writeList = await this.prisma.write.findMany({
+        select: {
+          id: true,
+        },
+      });
+      return writeList;
+    } catch (e) {
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: e,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
