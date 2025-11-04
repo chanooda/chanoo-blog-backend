@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
-import { Folder, FolderImage } from "generated/prisma";
+import { Injectable } from "@nestjs/common"
+import type { Folder, FolderImage } from "generated/prisma"
+import type { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class FolderImageRepository {
@@ -8,7 +8,7 @@ export class FolderImageRepository {
 
 	async createFolderImages(
 		folderId: number,
-		fileList: Array<Omit<Express.Multer.File, "buffer"> & { url: string }>,
+		fileList: Array<Omit<Express.Multer.File, "buffer"> & { url: string }>
 	) {
 		try {
 			await this.prisma.folderImage.createMany({
@@ -16,28 +16,28 @@ export class FolderImageRepository {
 					...file,
 					folderId,
 				})),
-			});
+			})
 		} catch (error) {
-			throw new Error(error);
+			throw new Error(error)
 		}
 	}
 
 	async createFolderImage(
 		folderId: number,
-		file: Omit<Express.Multer.File, "buffer"> & { url: string },
+		file: Omit<Express.Multer.File, "buffer"> & { url: string }
 	) {
 		try {
-			const { path, stream, destination, encoding, ...fileInfo } = file;
+			const { path, stream, destination, encoding, ...fileInfo } = file
 
 			const image = await this.prisma.folderImage.create({
 				data: {
 					folderId,
 					...fileInfo,
 				},
-			});
-			return image;
+			})
+			return image
 		} catch (error) {
-			throw new Error(error);
+			throw new Error(error)
 		}
 	}
 
@@ -51,18 +51,18 @@ export class FolderImageRepository {
 					},
 				},
 			},
-		});
+		})
 
-		console.log("folderImage");
-		console.log(folderImage);
-		console.log("\n");
+		console.log("folderImage")
+		console.log(folderImage)
+		console.log("\n")
 
-		return folderImage.length;
+		return folderImage.length
 	}
 
 	async getFolderImagesById(
 		folderId: number,
-		fileList: Array<Omit<Express.Multer.File, "buffer">>,
+		fileList: Array<Omit<Express.Multer.File, "buffer">>
 	) {
 		const folderImages = await Promise.all(
 			fileList.map((file) =>
@@ -73,19 +73,19 @@ export class FolderImageRepository {
 							originalname: file.originalname,
 						},
 					},
-				}),
-			),
-		);
+				})
+			)
+		)
 
-		console.log("folderImages");
-		console.log(folderImages);
-		console.log("\n");
+		console.log("folderImages")
+		console.log(folderImages)
+		console.log("\n")
 
-		return folderImages;
+		return folderImages
 	}
 
 	async deleteFolderImage(
-		id: number,
+		id: number
 	): Promise<FolderImage & { folder: Folder }> {
 		try {
 			const folderImage = await this.prisma.folderImage.delete({
@@ -95,11 +95,11 @@ export class FolderImageRepository {
 				include: {
 					folder: true,
 				},
-			});
+			})
 
-			return folderImage;
+			return folderImage
 		} catch (error) {
-			throw new Error(error);
+			throw new Error(error)
 		}
 	}
 }

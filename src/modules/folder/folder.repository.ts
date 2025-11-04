@@ -1,9 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { PrismaService } from "src/modules/prisma/prisma.service";
-import { FolderCreateDto } from "./dto/folder-create.dto";
-import { Folder } from "generated/prisma";
-import { GetFolderDataDto } from "./dto/folders-response.dto";
-import { FolderUpdateDto } from "./dto/folder-update.dto";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
+import type { Folder } from "generated/prisma"
+import type { PrismaService } from "src/modules/prisma/prisma.service"
+import type { FolderCreateDto } from "./dto/folder-create.dto"
+import type { FolderUpdateDto } from "./dto/folder-update.dto"
+import type { GetFolderDataDto } from "./dto/folders-response.dto"
 
 @Injectable()
 export class FolderRepository {
@@ -13,10 +13,10 @@ export class FolderRepository {
 		try {
 			const folder = await this.prisma.folder.create({
 				data: createFolderDto,
-			});
-			return folder;
+			})
+			return folder
 		} catch (e) {
-			console.error(e);
+			console.error(e)
 
 			if (e.code === "P2002") {
 				throw new HttpException(
@@ -24,8 +24,8 @@ export class FolderRepository {
 						status: HttpStatus.NOT_FOUND,
 						error: "중복된 이름의 폴더입니다.",
 					},
-					HttpStatus.NOT_FOUND,
-				);
+					HttpStatus.NOT_FOUND
+				)
 			}
 		}
 	}
@@ -44,9 +44,9 @@ export class FolderRepository {
 					},
 				},
 			},
-		});
+		})
 
-		return folders || [];
+		return folders || []
 	}
 
 	async getFolders(): Promise<GetFolderDataDto[]> {
@@ -61,10 +61,10 @@ export class FolderRepository {
 						},
 					},
 				},
-			});
-			return folders || [];
+			})
+			return folders || []
 		} catch (error) {
-			throw new Error(error);
+			throw new Error(error)
 		}
 	}
 
@@ -77,7 +77,7 @@ export class FolderRepository {
 					parent: true,
 					folderImage: true,
 				},
-			});
+			})
 
 			if (!folder) {
 				throw new HttpException(
@@ -85,18 +85,18 @@ export class FolderRepository {
 						status: HttpStatus.NOT_FOUND,
 						error: "해당 id의 유저가 존재하지 않습니다.",
 					},
-					HttpStatus.NOT_FOUND,
-				);
+					HttpStatus.NOT_FOUND
+				)
 			}
 
-			return folder;
+			return folder
 		} catch (error) {
-			throw new Error(error);
+			throw new Error(error)
 		}
 	}
 
 	async patchFolder(id: number, FolderUpdateDto: FolderUpdateDto) {
-		const { child, parentId, ...rest } = FolderUpdateDto;
+		const { child, parentId, ...rest } = FolderUpdateDto
 
 		const folder = await this.prisma.folder.update({
 			where: {
@@ -109,9 +109,9 @@ export class FolderRepository {
 					connect: child?.map((id) => ({ id })) || [],
 				},
 			},
-		});
+		})
 
-		return folder;
+		return folder
 	}
 
 	async deleteFolder(id: number) {
@@ -120,18 +120,18 @@ export class FolderRepository {
 				where: {
 					id,
 				},
-			});
-			return;
+			})
+			return
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 			throw new HttpException(
 				{
 					status: HttpStatus.NOT_FOUND,
 					error: "해당 id의 폴더가 존재하지 않습니다.",
 				},
 				HttpStatus.NOT_FOUND,
-				{ cause: error },
-			);
+				{ cause: error }
+			)
 		}
 	}
 }

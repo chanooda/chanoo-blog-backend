@@ -1,8 +1,8 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Series } from "generated/prisma";
-import { PrismaService } from "../prisma/prisma.service";
-import { CreateSeriesDto } from "./dto/create-series.dto";
-import { UpdateSeriesDto } from "./dto/update-series.dto";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
+import type { Series } from "generated/prisma"
+import type { PrismaService } from "../prisma/prisma.service"
+import type { CreateSeriesDto } from "./dto/create-series.dto"
+import type { UpdateSeriesDto } from "./dto/update-series.dto"
 
 @Injectable()
 export class SeriesRepository {
@@ -10,7 +10,7 @@ export class SeriesRepository {
 
 	async createSeries(createSeriesDto: CreateSeriesDto): Promise<Series> {
 		try {
-			const { name } = createSeriesDto;
+			const { name } = createSeriesDto
 			const series = await this.prisma.series.upsert({
 				create: {
 					name,
@@ -21,19 +21,19 @@ export class SeriesRepository {
 				where: {
 					name,
 				},
-			});
-			return series;
+			})
+			return series
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 		}
 	}
 
 	async findAll() {
 		try {
-			const series = await this.prisma.series.findMany({});
-			return series || [];
+			const series = await this.prisma.series.findMany({})
+			return series || []
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 		}
 	}
 
@@ -50,8 +50,8 @@ export class SeriesRepository {
 						},
 					},
 				},
-			});
-			return series;
+			})
+			return series
 		} catch (error) {
 			if (error.code === "P2002") {
 				throw new HttpException(
@@ -59,8 +59,8 @@ export class SeriesRepository {
 						status: HttpStatus.NOT_FOUND,
 						error: "중복된 이름의 폴더입니다.",
 					},
-					HttpStatus.NOT_FOUND,
-				);
+					HttpStatus.NOT_FOUND
+				)
 			}
 		}
 	}
@@ -74,8 +74,8 @@ export class SeriesRepository {
 				include: {
 					writes: true,
 				},
-			});
-			return series;
+			})
+			return series
 		} catch (error) {
 			if (error.code === "P2002") {
 				throw new HttpException(
@@ -83,14 +83,14 @@ export class SeriesRepository {
 						status: HttpStatus.NOT_FOUND,
 						error: "중복된 이름의 폴더입니다.",
 					},
-					HttpStatus.NOT_FOUND,
-				);
+					HttpStatus.NOT_FOUND
+				)
 			}
 		}
 	}
 
 	async update(id: number, updateSeriesDto: UpdateSeriesDto) {
-		const { name } = updateSeriesDto;
+		const { name } = updateSeriesDto
 		try {
 			const series = await this.prisma.series.update({
 				data: {
@@ -99,10 +99,10 @@ export class SeriesRepository {
 				where: {
 					id,
 				},
-			});
-			return series;
+			})
+			return series
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 
 			if (error.code === "P2002") {
 				throw new HttpException(
@@ -110,8 +110,8 @@ export class SeriesRepository {
 						status: HttpStatus.NOT_FOUND,
 						error: "중복된 이름의 폴더입니다.",
 					},
-					HttpStatus.NOT_FOUND,
-				);
+					HttpStatus.NOT_FOUND
+				)
 			}
 		}
 	}
@@ -122,10 +122,10 @@ export class SeriesRepository {
 				where: {
 					id,
 				},
-			});
-			return series;
+			})
+			return series
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 
 			if (error.code === "P2002") {
 				throw new HttpException(
@@ -133,10 +133,10 @@ export class SeriesRepository {
 						status: HttpStatus.NOT_FOUND,
 						error: "중복된 이름의 폴더입니다.",
 					},
-					HttpStatus.NOT_FOUND,
-				);
+					HttpStatus.NOT_FOUND
+				)
 			}
-			throw new Error(error);
+			throw new Error(error)
 		}
 	}
 }

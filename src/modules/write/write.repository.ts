@@ -1,10 +1,10 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { Prisma } from "generated/prisma";
-import { IdRes } from "src/common/dto/response.dto";
-import { PrismaService } from "../prisma/prisma.service";
-import { CreateWriteDto } from "./dto/create-write.dto";
-import { WriteFindAllDto } from "./dto/find-write.dto";
-import { UpdateWriteDto } from "./dto/update-write.dto";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
+import type { Prisma } from "generated/prisma"
+import type { IdRes } from "src/common/dto/response.dto"
+import type { PrismaService } from "../prisma/prisma.service"
+import type { CreateWriteDto } from "./dto/create-write.dto"
+import type { WriteFindAllDto } from "./dto/find-write.dto"
+import type { UpdateWriteDto } from "./dto/update-write.dto"
 
 @Injectable()
 export class WriteRepository {
@@ -12,9 +12,9 @@ export class WriteRepository {
 
 	async create(createWriteDto: CreateWriteDto): Promise<IdRes> {
 		const { content, isPublish, title, imgUrl, seriesName, tagNames } =
-			createWriteDto;
+			createWriteDto
 
-		const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]");
+		const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]")
 
 		try {
 			const write = await this.prisma.$transaction(async (tx) => {
@@ -54,17 +54,17 @@ export class WriteRepository {
 								},
 							}),
 					},
-				});
+				})
 
 				if (seriesName) {
 					const series = await tx.series.findFirst({
 						where: {
 							name: seriesName,
 						},
-					});
+					})
 
 					const seriesOrder: Prisma.JsonArray =
-						(series?.writeOrder as Prisma.JsonArray) || [];
+						(series?.writeOrder as Prisma.JsonArray) || []
 
 					await tx.series.update({
 						where: {
@@ -73,35 +73,35 @@ export class WriteRepository {
 						data: {
 							writeOrder: [...seriesOrder, write.id],
 						},
-					});
+					})
 				}
 
-				console.log(write);
+				console.log(write)
 
-				return write;
-			});
+				return write
+			})
 
-			return { id: write.id };
+			return { id: write.id }
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 			throw new HttpException(
 				{ error, status: HttpStatus.BAD_REQUEST },
-				HttpStatus.BAD_REQUEST,
-			);
+				HttpStatus.BAD_REQUEST
+			)
 		}
 	}
 
 	async update(id: number, updateWriteDto: UpdateWriteDto): Promise<IdRes> {
 		const { content, isPublish, title, imgUrl, seriesName, tagNames } =
-			updateWriteDto;
+			updateWriteDto
 
-		const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]");
+		const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]")
 
-		console.log(updateWriteDto);
+		console.log(updateWriteDto)
 
 		try {
 			const write = await this.prisma.$transaction(async (tx) => {
-				const deletedWritesTags = [];
+				const deletedWritesTags = []
 
 				const writesTags = await tx.writesTag.findMany({
 					where: {
@@ -110,20 +110,18 @@ export class WriteRepository {
 					include: {
 						tag: true,
 					},
-				});
+				})
 
 				writesTags?.forEach((writeTag) => {
-					const index = parsedTagNames.findIndex(
-						(tagName) => tagName === writeTag.tag.name,
-					);
+					const index = parsedTagNames.indexOf(writeTag.tag.name)
 					if (index === -1) {
-						deletedWritesTags.push(writeTag);
+						deletedWritesTags.push(writeTag)
 					} else {
-						parsedTagNames.splice(index, 1);
+						parsedTagNames.splice(index, 1)
 					}
-				});
+				})
 
-				console.log("deletedWriteTagId", deletedWritesTags);
+				console.log("deletedWriteTagId", deletedWritesTags)
 
 				const write = await tx.write.update({
 					data: {
@@ -170,17 +168,17 @@ export class WriteRepository {
 					where: {
 						id,
 					},
-				});
+				})
 
 				if (seriesName) {
 					const series = await tx.series.findFirst({
 						where: {
 							name: seriesName,
 						},
-					});
+					})
 
 					const seriesOrder: Prisma.JsonArray =
-						(series?.writeOrder as Prisma.JsonArray) || [];
+						(series?.writeOrder as Prisma.JsonArray) || []
 
 					if (!seriesOrder.includes(write.id))
 						await tx.series.update({
@@ -190,23 +188,23 @@ export class WriteRepository {
 							data: {
 								writeOrder: [...seriesOrder, write.id],
 							},
-						});
+						})
 				}
 
-				return write;
-			});
-			return { id: write.id };
+				return write
+			})
+			return { id: write.id }
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 			throw new HttpException(
 				{ error, status: HttpStatus.BAD_REQUEST },
-				HttpStatus.BAD_REQUEST,
-			);
+				HttpStatus.BAD_REQUEST
+			)
 		}
 	}
 
 	async findAll(writeFindAllDto: WriteFindAllDto) {
-		const { limit, page, search, seriesId, tagId, isPublish } = writeFindAllDto;
+		const { limit, page, search, seriesId, tagId, isPublish } = writeFindAllDto
 
 		try {
 			const prisma = this.prisma.$extends({
@@ -215,12 +213,12 @@ export class WriteRepository {
 						content: {
 							needs: { content: true },
 							compute(write) {
-								return write.content.slice(0, 600);
+								return write.content.slice(0, 600)
 							},
 						},
 					},
 				},
-			});
+			})
 			const writes = await prisma.write.findMany({
 				skip: page * 10 || 0,
 				take: limit || 10,
@@ -251,13 +249,13 @@ export class WriteRepository {
 				orderBy: {
 					createdAt: "desc",
 				},
-			});
+			})
 
-			console.log([]);
+			console.log([])
 
-			return writes || [];
+			return writes || []
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 		}
 	}
 
@@ -284,26 +282,26 @@ export class WriteRepository {
 						},
 					},
 				},
-			});
+			})
 			if (!write) {
 				throw new HttpException(
 					{
 						status: HttpStatus.NOT_FOUND,
 						error: "해당 id의 유저가 존재하지 않습니다.",
 					},
-					HttpStatus.NOT_FOUND,
-				);
+					HttpStatus.NOT_FOUND
+				)
 			}
-			return write;
+			return write
 		} catch (error) {
-			console.error(error);
+			console.error(error)
 			throw new HttpException(
 				{
 					status: HttpStatus.EXPECTATION_FAILED,
 					error: error,
 				},
-				HttpStatus.EXPECTATION_FAILED,
-			);
+				HttpStatus.EXPECTATION_FAILED
+			)
 		}
 	}
 
@@ -328,7 +326,7 @@ export class WriteRepository {
 							},
 						},
 					},
-				});
+				})
 
 				if (!write) {
 					throw new HttpException(
@@ -336,8 +334,8 @@ export class WriteRepository {
 							status: HttpStatus.NOT_FOUND,
 							error: "해당 id의 유저가 존재하지 않습니다.",
 						},
-						HttpStatus.NOT_FOUND,
-					);
+						HttpStatus.NOT_FOUND
+					)
 				}
 
 				if (write?.seriesId) {
@@ -352,22 +350,20 @@ export class WriteRepository {
 								},
 							},
 						},
-					});
+					})
 
 					const seriesOrder: Prisma.JsonArray =
-						(series?.writeOrder as Prisma.JsonArray) || [];
+						(series?.writeOrder as Prisma.JsonArray) || []
 
 					if (seriesOrder.includes(write.id)) {
-						const deletedWriteOrder = seriesOrder.filter(
-							(id) => write.id !== id,
-						);
+						const deletedWriteOrder = seriesOrder.filter((id) => write.id !== id)
 						if (deletedWriteOrder.length > 0) {
 							tx.series.update({
 								where: { id: write.seriesId },
 								data: {
 									writeOrder: deletedWriteOrder,
 								},
-							});
+							})
 						}
 					}
 
@@ -376,19 +372,19 @@ export class WriteRepository {
 							where: {
 								id: series.id,
 							},
-						});
+						})
 					}
 				}
 				if (write.tags.length > 0) {
 					// 글이 없는 tag가 있으면 삭제
 					const writeTag = write.tags.filter(
-						(writeTag) => writeTag.tag.writes.length === 1,
-					);
-					console.log(write);
-					console.log("-------------------------");
-					console.log(writeTag);
-					console.log("-------------------------");
-					console.log(writeTag.map((tag) => tag.tag.id));
+						(writeTag) => writeTag.tag.writes.length === 1
+					)
+					console.log(write)
+					console.log("-------------------------")
+					console.log(writeTag)
+					console.log("-------------------------")
+					console.log(writeTag.map((tag) => tag.tag.id))
 					if (writeTag.length > 0) {
 						await tx.tag.deleteMany({
 							where: {
@@ -396,20 +392,20 @@ export class WriteRepository {
 									in: writeTag.map((tag) => tag.tag.id),
 								},
 							},
-						});
+						})
 					}
 				}
-			});
+			})
 		} catch (error) {
-			console.log(error);
-			console.log("aslkdfjlasjdflkajsdfja");
+			console.log(error)
+			console.log("aslkdfjlasjdflkajsdfja")
 			throw new HttpException(
 				{
 					status: HttpStatus.EXPECTATION_FAILED,
 					error: error,
 				},
-				HttpStatus.EXPECTATION_FAILED,
-			);
+				HttpStatus.EXPECTATION_FAILED
+			)
 		}
 	}
 	async writeIdList() {
@@ -418,16 +414,16 @@ export class WriteRepository {
 				select: {
 					id: true,
 				},
-			});
-			return writeList;
+			})
+			return writeList
 		} catch (e) {
 			throw new HttpException(
 				{
 					status: HttpStatus.INTERNAL_SERVER_ERROR,
 					error: e,
 				},
-				HttpStatus.INTERNAL_SERVER_ERROR,
-			);
+				HttpStatus.INTERNAL_SERVER_ERROR
+			)
 		}
 	}
 }

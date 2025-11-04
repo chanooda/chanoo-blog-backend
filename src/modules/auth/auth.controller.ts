@@ -1,16 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AuthService } from './auth.service';
-import { SignInDto } from './dto/signIn.dto';
+import { Body, Controller, Post } from "@nestjs/common"
+import { ApiOperation, ApiTags } from "@nestjs/swagger"
+import type { AuthService } from "./auth.service"
+import type { SignInDto } from "./dto/signIn.dto"
 
-@ApiTags('auth')
-@Controller('auth')
+@ApiTags("auth")
+@Controller("auth")
 export class AuthController {
-  constructor(private authService: AuthService) {}
+	constructor(private authService: AuthService) {}
 
-  @ApiOperation({ summary: '로그인' })
-  @Post('login')
-  signIn(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto);
-  }
+	@ApiOperation({ summary: "로그인" })
+	@Post("login")
+	signIn(@Body() signInDto: SignInDto) {
+		return this.authService.signIn(signInDto)
+	}
 }

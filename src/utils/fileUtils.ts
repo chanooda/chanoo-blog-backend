@@ -1,13 +1,13 @@
-const checkFileNameReg = /\.[^/.]+$/;
-const checkFileNumberReg = /(\(\d+\))$/;
+const checkFileNameReg = /\.[^/.]+$/
+const checkFileNumberReg = /(\(\d+\))$/
 export const getFileNumber = (fileName: string) =>
-  fileName.match(checkFileNumberReg)?.[0];
+	fileName.match(checkFileNumberReg)?.[0]
 export const getExtension = (fileName: string) =>
-  fileName.match(checkFileNameReg);
+	fileName.match(checkFileNameReg)
 
 export const getFileName = (fileName: string) => {
-  return fileName
-    .replace(checkFileNameReg, '')
-    .trim()
-    .replace(getFileNumber(fileName) || '', '');
-};
+	return fileName
+		.replace(checkFileNameReg, "")
+		.trim()
+		.replace(getFileNumber(fileName) || "", "")
+}

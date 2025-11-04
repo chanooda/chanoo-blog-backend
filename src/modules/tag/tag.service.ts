@@ -1,45 +1,45 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
-import { CreateTagDto } from "./dto/create-tag.dto";
-import { UpdateTagDto } from "./dto/update-tag.dto";
-import { TagRepository } from "./tag.repository";
-import { Tag } from "generated/prisma";
-import { CommonResponse } from "src/common/dto/response.dto";
-import { TagResDto } from "./dto/response-tag.dto";
+import { HttpStatus, Injectable } from "@nestjs/common"
+import type { Tag } from "generated/prisma"
+import type { CommonResponse } from "src/common/dto/response.dto"
+import type { CreateTagDto } from "./dto/create-tag.dto"
+import type { TagResDto } from "./dto/response-tag.dto"
+import type { UpdateTagDto } from "./dto/update-tag.dto"
+import type { TagRepository } from "./tag.repository"
 
 @Injectable()
 export class TagService {
 	constructor(private tagRepository: TagRepository) {}
 
 	async create(createTagDto: CreateTagDto): Promise<CommonResponse<Tag>> {
-		const tag = await this.tagRepository.create(createTagDto);
+		const tag = await this.tagRepository.create(createTagDto)
 		return {
 			status: HttpStatus.OK,
 			data: tag,
-		};
+		}
 	}
 
 	async findAll(): Promise<TagResDto[]> {
-		const tags = await this.tagRepository.findAll();
-		return tags;
+		const tags = await this.tagRepository.findAll()
+		return tags
 	}
 
 	async findOneWithWrite(id: number) {
-		return await this.tagRepository.findTagWithWrite(id);
+		return await this.tagRepository.findTagWithWrite(id)
 	}
 
 	async update(
 		id: number,
-		updateTagDto: UpdateTagDto,
+		updateTagDto: UpdateTagDto
 	): Promise<CommonResponse<Tag>> {
-		const tag = await this.tagRepository.update(id, updateTagDto);
+		const tag = await this.tagRepository.update(id, updateTagDto)
 		return {
 			status: HttpStatus.OK,
 			data: tag,
-		};
+		}
 	}
 
 	async remove(id: number): Promise<CommonResponse<undefined>> {
-		await this.tagRepository.delete(id);
-		return { status: HttpStatus.OK };
+		await this.tagRepository.delete(id)
+		return { status: HttpStatus.OK }
 	}
 }
