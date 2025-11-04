@@ -1,14 +1,13 @@
 
 
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
 }
 
 datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Folder {
@@ -40,7 +39,7 @@ model Write {
   title     String
   imgUrl    String?
   seriesId  Int?
-  content   String       @db.LongText
+  content   String       
   isPublish Boolean
   series    Series?      @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   view      Int?         @default(0)
