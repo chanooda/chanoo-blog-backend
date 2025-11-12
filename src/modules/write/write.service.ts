@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common"
-import type { IdRes } from "src/common/dto/response.dto"
-import type { CreateWriteDto } from "./dto/create-write.dto"
-import type { WriteFindAllDto } from "./dto/find-write.dto"
-import type { UpdateWriteDto } from "./dto/update-write.dto"
-import type { WriteRepository } from "./write.repository"
+import { IdRes } from "src/common/dto/response.dto"
+import { CreateWriteDto } from "./dto/create-write.dto"
+import { WriteFindAllDto } from "./dto/find-write.dto"
+import { UpdateWriteDto } from "./dto/update-write.dto"
+import { WriteRepository } from "./write.repository"
 
 @Injectable()
 export class WriteService {

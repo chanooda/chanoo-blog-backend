@@ -11,16 +11,16 @@ import {
 } from "@nestjs/common"
 import { ApiOkResponse, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import { ApiFile, ApiFiles } from "src/common/decorater/file.decorator"
-import type { CommonResponse } from "src/common/dto/response.dto"
+import { CommonResponse } from "src/common/dto/response.dto"
 import { TransformImage } from "src/pipe/image.pipe"
-import type { FolderCreateDto } from "./dto/folder-create.dto"
-import type { FolderUpdateDto } from "./dto/folder-update.dto"
+import { FolderCreateDto } from "./dto/folder-create.dto"
+import { FolderUpdateDto } from "./dto/folder-update.dto"
 import {
 	type GetFolderDataDto,
 	GetFolderDto,
 	GetFoldersDto,
 } from "./dto/folders-response.dto"
-import type { FolderService } from "./folder.service"
+import { FolderService } from "./folder.service"
 
 @ApiTags("folders")
 @Controller("folders")
@@ -126,7 +126,6 @@ export class FolderController {
 		@UploadedFile(new TransformImage()) image: Express.Multer.File,
 		@Param("id") id: string
 	) {
-		console.log(image)
 		return this.folderService.uploadImageFolder(Number(id), image)
 	}
 

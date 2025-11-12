@@ -16,7 +16,7 @@ export class TransformImage implements PipeTransform {
 	): Promise<Express.Multer.File> {
 		const image = sharp(value.buffer)
 		const { width, height } = await image.metadata()
-		console.log(await image.metadata())
+
 		if (width > height && width > this.maxWidth) {
 			image.resize({ width: this.maxWidth, fit: "contain" })
 		}

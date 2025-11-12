@@ -9,15 +9,15 @@ import {
 	Post,
 } from "@nestjs/common"
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
-import type { CommonResponse } from "src/common/dto/response.dto"
-import type { CreateTagDto } from "./dto/create-tag.dto"
+import { CommonResponse } from "src/common/dto/response.dto"
+import { CreateTagDto } from "./dto/create-tag.dto"
 import {
 	GetTagsResDto,
 	GetTagWithWriteResDto,
 	type TagResDto,
 } from "./dto/response-tag.dto"
-import type { UpdateTagDto } from "./dto/update-tag.dto"
-import type { TagService } from "./tag.service"
+import { UpdateTagDto } from "./dto/update-tag.dto"
+import { TagService } from "./tag.service"
 
 @ApiTags("tag")
 @Controller("tag")

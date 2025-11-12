@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger"
-import type { WriteTagWriteResDto } from "src/modules/write/dto/response-writeTag.dto"
+import { WriteTagWriteResDto } from "src/modules/write/dto/response-writeTag.dto"
 
 export class TagResDto {
 	@ApiProperty({

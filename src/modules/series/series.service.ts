@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
-import type { CreateSeriesDto } from "./dto/create-series.dto"
-import type { UpdateSeriesDto } from "./dto/update-series.dto"
-import type { SeriesRepository } from "./series.repository"
+import { CreateSeriesDto } from "./dto/create-series.dto"
+import { UpdateSeriesDto } from "./dto/update-series.dto"
+import { SeriesRepository } from "./series.repository"
 
 @Injectable()
 export class SeriesService {

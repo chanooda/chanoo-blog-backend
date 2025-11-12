@@ -9,15 +9,15 @@ import {
 	Post,
 } from "@nestjs/common"
 import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
-import type { CommonResponse } from "src/common/dto/response.dto"
-import type { CreateSeriesDto } from "./dto/create-series.dto"
+import { CommonResponse } from "src/common/dto/response.dto"
+import { CreateSeriesDto } from "./dto/create-series.dto"
 import {
 	GetSeriesAllDto,
 	GetSeriesDto,
 	type SeriesResDto,
 } from "./dto/response-series.dto"
-import type { UpdateSeriesDto } from "./dto/update-series.dto"
-import type { SeriesService } from "./series.service"
+import { UpdateSeriesDto } from "./dto/update-series.dto"
+import { SeriesService } from "./series.service"
 
 @ApiTags("series")
 @Controller("series")

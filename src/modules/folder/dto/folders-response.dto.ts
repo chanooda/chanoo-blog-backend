@@ -1,5 +1,5 @@
 import { ApiProperty, getSchemaPath } from "@nestjs/swagger"
-import type { Folder } from "generated/prisma"
+import { Folder } from "generated/prisma"
 
 export class BaseFolderDto {
 	@ApiProperty({ description: "폴더 ID" })

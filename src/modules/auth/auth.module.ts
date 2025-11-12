@@ -1,10 +1,10 @@
-import { type DynamicModule, Module } from "@nestjs/common"
+import { DynamicModule, Module } from "@nestjs/common"
 import { JwtModule } from "@nestjs/jwt"
 import { JWT_SECRET_KEY } from "./auth.constant"
 import { AuthController } from "./auth.controller"
 import { AuthGuard } from "./auth.guard"
 import { AuthService } from "./auth.service"
-import type { AuthModuleOption } from "./auth.types"
+import { AuthModuleOption } from "./auth.types"
 
 @Module({})
 export class AuthModule {

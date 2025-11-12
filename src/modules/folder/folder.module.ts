@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common"
-import { AwsRepository } from "../aws/aws.repository"
+import { StorageModule } from "../storage/storage.module"
 import { FolderImageRepository } from "../folderImage/folderImage.repository"
 import { ImageRepository } from "../image/Image.repository"
 import { PrismaModule } from "../prisma/prisma.module"
@@ -12,10 +12,9 @@ import { FolderService } from "./folder.service"
 	providers: [
 		FolderService,
 		FolderRepository,
-		AwsRepository,
 		FolderImageRepository,
 		ImageRepository,
 	],
-	imports: [PrismaModule],
+	imports: [PrismaModule, StorageModule],
 })
 export class FolderModule {}

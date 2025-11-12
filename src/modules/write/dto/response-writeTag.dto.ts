@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { TagResDto } from "src/modules/tag/dto/response-tag.dto"
-import type { WriteResDto } from "./response-write.dto"
+import { WriteResDto } from "./response-write.dto"
 
 export class WriteTagTagResDto {
 	@ApiProperty({ description: "태그 id", type: "number" })

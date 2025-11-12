@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
-import type { Series } from "generated/prisma"
-import type { PrismaService } from "../prisma/prisma.service"
-import type { CreateSeriesDto } from "./dto/create-series.dto"
-import type { UpdateSeriesDto } from "./dto/update-series.dto"
+import { Series } from "generated/prisma"
+import { PrismaService } from "../prisma/prisma.service"
+import { CreateSeriesDto } from "./dto/create-series.dto"
+import { UpdateSeriesDto } from "./dto/update-series.dto"
 
 @Injectable()
 export class SeriesRepository {

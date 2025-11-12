@@ -4,9 +4,9 @@ import {
 	Injectable,
 	type NestInterceptor,
 } from "@nestjs/common"
-import type { Observable } from "rxjs"
+import { Observable } from "rxjs"
 import { map } from "rxjs/operators"
-import type { CommonResponse } from "src/common/dto/response.dto"
+import { CommonResponse } from "src/common/dto/response.dto"
 
 @Injectable()
 export class TransformInterceptor<T>

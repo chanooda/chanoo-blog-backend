@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
-import type { Prisma } from "generated/prisma"
-import type { IdRes } from "src/common/dto/response.dto"
-import type { PrismaService } from "../prisma/prisma.service"
-import type { CreateWriteDto } from "./dto/create-write.dto"
-import type { WriteFindAllDto } from "./dto/find-write.dto"
-import type { UpdateWriteDto } from "./dto/update-write.dto"
+import { Prisma } from "generated/prisma"
+import { IdRes } from "src/common/dto/response.dto"
+import { PrismaService } from "../prisma/prisma.service"
+import { CreateWriteDto } from "./dto/create-write.dto"
+import { WriteFindAllDto } from "./dto/find-write.dto"
+import { UpdateWriteDto } from "./dto/update-write.dto"
 
 @Injectable()
 export class WriteRepository {
@@ -241,7 +241,7 @@ export class WriteRepository {
 				include: {
 					series: true,
 					tags: {
-						include: {
+						select: {
 							tag: true,
 						},
 					},
@@ -251,9 +251,15 @@ export class WriteRepository {
 				},
 			})
 
-			console.log([])
+			// tags: [{ tag: { id, name } }] -> [{ id, name }]
+			const flattened = (writes || []).map((write) => ({
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}))
 
-			return writes || []
+			return flattened
 		} catch (error) {
 			console.error(error)
 		}
@@ -277,7 +283,7 @@ export class WriteRepository {
 						},
 					},
 					tags: {
-						include: {
+						select: {
 							tag: true,
 						},
 					},
@@ -292,7 +298,12 @@ export class WriteRepository {
 					HttpStatus.NOT_FOUND
 				)
 			}
-			return write
+			return {
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}
 		} catch (error) {
 			console.error(error)
 			throw new HttpException(
@@ -408,6 +419,7 @@ export class WriteRepository {
 			)
 		}
 	}
+
 	async writeIdList() {
 		try {
 			const writeList = await this.prisma.write.findMany({

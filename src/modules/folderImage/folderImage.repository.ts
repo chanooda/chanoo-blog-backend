@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
-import type { Folder, FolderImage } from "generated/prisma"
-import type { PrismaService } from "../prisma/prisma.service"
+import { Folder, FolderImage } from "generated/prisma"
+import { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class FolderImageRepository {
@@ -8,7 +8,9 @@ export class FolderImageRepository {
 
 	async createFolderImages(
 		folderId: number,
-		fileList: Array<Omit<Express.Multer.File, "buffer"> & { url: string }>
+		fileList: Array<
+			Omit<Express.Multer.File, "buffer"> & { url: string; pathname: string }
+		>
 	) {
 		try {
 			await this.prisma.folderImage.createMany({
@@ -24,11 +26,13 @@ export class FolderImageRepository {
 
 	async createFolderImage(
 		folderId: number,
-		file: Omit<Express.Multer.File, "buffer"> & { url: string }
+		file: Omit<Express.Multer.File, "buffer"> & { url: string; pathname: string }
 	) {
 		try {
 			const { path, stream, destination, encoding, ...fileInfo } = file
-
+			console.log("fileInfo")
+			console.log(fileInfo)
+			console.log("\n")
 			const image = await this.prisma.folderImage.create({
 				data: {
 					folderId,
@@ -41,14 +45,12 @@ export class FolderImageRepository {
 		}
 	}
 
-	async getFolderImageById(folderId: number, fileName: string) {
+	async getFolderImageByIdAndPathname(folderId: number, pathname: string) {
 		const folderImage = await this.prisma.folderImage.findMany({
 			where: {
 				AND: {
 					folderId,
-					originalname: {
-						contains: fileName,
-					},
+					pathname,
 				},
 			},
 		})
@@ -60,9 +62,9 @@ export class FolderImageRepository {
 		return folderImage.length
 	}
 
-	async getFolderImagesById(
+	async getFolderImagesByIdAndPathname(
 		folderId: number,
-		fileList: Array<Omit<Express.Multer.File, "buffer">>
+		fileList: Array<Omit<Express.Multer.File, "buffer"> & { pathname: string }>
 	) {
 		const folderImages = await Promise.all(
 			fileList.map((file) =>
@@ -70,7 +72,7 @@ export class FolderImageRepository {
 					where: {
 						AND: {
 							folderId,
-							originalname: file.originalname,
+							pathname: file.pathname,
 						},
 					},
 				})

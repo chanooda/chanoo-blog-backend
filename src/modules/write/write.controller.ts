@@ -17,16 +17,16 @@ import {
 	ApiOperation,
 	ApiTags,
 } from "@nestjs/swagger"
-import type { CommonResponse, IdReq, IdRes } from "src/common/dto/response.dto"
-import type { CreateWriteDto } from "./dto/create-write.dto"
-import type { WriteFindAllDto } from "./dto/find-write.dto"
+import { CommonResponse, IdReq, IdRes } from "src/common/dto/response.dto"
+import { CreateWriteDto } from "./dto/create-write.dto"
+import { WriteFindAllDto } from "./dto/find-write.dto"
 import {
 	GetWriteDto,
 	GetWritesDto,
 	type WriteFullResDto,
 } from "./dto/response-write.dto"
-import type { UpdateWriteDto } from "./dto/update-write.dto"
-import type { WriteService } from "./write.service"
+import { UpdateWriteDto } from "./dto/update-write.dto"
+import { WriteService } from "./write.service"
 
 @ApiTags("write")
 @Controller("write")

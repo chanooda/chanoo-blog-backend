@@ -1,6 +1,6 @@
 import { applyDecorators, UseInterceptors } from "@nestjs/common"
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express"
-import type { MulterOptions } from "@nestjs/platform-express/multer/interfaces/multer-options.interface"
+import { MulterOptions } from "@nestjs/platform-express/multer/interfaces/multer-options.interface"
 import { ApiBody, ApiConsumes } from "@nestjs/swagger"
 
 export function ApiFiles(

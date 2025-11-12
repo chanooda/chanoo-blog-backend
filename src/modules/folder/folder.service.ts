@@ -1,19 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
-import type { FolderImage } from "generated/prisma"
-import type { CommonResponse } from "src/common/dto/response.dto"
+import { FolderImage } from "generated/prisma"
+import { CommonResponse } from "src/common/dto/response.dto"
 import { getFileNumber } from "src/utils/fileUtils"
-import type { AwsRepository } from "../aws/aws.repository"
-import type { FolderImageRepository } from "../folderImage/folderImage.repository"
-import type { FolderCreateDto } from "./dto/folder-create.dto"
-import type { FolderUpdateDto } from "./dto/folder-update.dto"
-import type { GetFolderDataDto } from "./dto/folders-response.dto"
-import type { FolderRepository } from "./folder.repository"
+import { FolderImageRepository } from "../folderImage/folderImage.repository"
+import { StorageService } from "../storage/storage.service"
+import { FolderCreateDto } from "./dto/folder-create.dto"
+import { FolderUpdateDto } from "./dto/folder-update.dto"
+import { GetFolderDataDto } from "./dto/folders-response.dto"
+import { FolderRepository } from "./folder.repository"
 
 @Injectable()
 export class FolderService {
 	constructor(
 		private folderRepository: FolderRepository,
-		private awsRepository: AwsRepository,
+		private storageService: StorageService,
 		private folderImageRepository: FolderImageRepository
 	) {}
 
@@ -49,8 +49,20 @@ export class FolderService {
 		return await this.folderRepository.patchFolder(id, folderUpdateDto)
 	}
 
-	deleteFolder(id: number) {
+	async deleteFolder(id: number) {
 		return this.folderRepository.deleteFolder(id)
+	}
+
+	private buildFolderPath(folder: GetFolderDataDto): string {
+		const pathParts: string[] = []
+		let currentFolder: GetFolderDataDto | null = folder
+
+		while (currentFolder) {
+			pathParts.unshift(currentFolder.name)
+			currentFolder = currentFolder.parent as GetFolderDataDto | null
+		}
+
+		return pathParts.join("/")
 	}
 
 	async uploadImageFolder(
@@ -59,26 +71,30 @@ export class FolderService {
 	): Promise<CommonResponse<FolderImage>> {
 		const folder = await this.folderRepository.getFolderById(id)
 		const filteredFile = file
+
+		const folderPath = this.buildFolderPath(folder)
 		const fileName = filteredFile.originalname
+		let pathname = `${folderPath}/${filteredFile.originalname}`
 
 		const fileNumber = getFileNumber(filteredFile.originalname)
 
 		const duplicateImageCount =
-			await this.folderImageRepository.getFolderImageById(id, fileName)
+			await this.folderImageRepository.getFolderImageByIdAndPathname(id, pathname)
 
 		if (duplicateImageCount > 0) {
 			filteredFile.originalname = `${fileName.replace(
 				fileNumber,
 				""
 			)} (${duplicateImageCount})`
+			pathname = `${folderPath}/${filteredFile.originalname}`
 		}
 
-		const image = await this.awsRepository.imageUpload(folder.name, filteredFile)
+		const image = await this.storageService.uploadImage(folder.name, filteredFile)
 
-		const folderImage = await this.folderImageRepository.createFolderImage(
-			id,
-			image
-		)
+		const folderImage = await this.folderImageRepository.createFolderImage(id, {
+			...image,
+			pathname,
+		})
 
 		return { status: 200, data: folderImage }
 	}
@@ -89,11 +105,15 @@ export class FolderService {
 	): Promise<CommonResponse> {
 		try {
 			const folder = await this.folderRepository.getFolderById(id)
-			const folderImages = await this.folderImageRepository.getFolderImagesById(
-				id,
-				fileList
-			)
-			if (folderImages.some((folderImage) => folderImage)) {
+			const folderImages =
+				await this.folderImageRepository.getFolderImagesByIdAndPathname(id, [
+					...fileList.map((file) => ({
+						...file,
+						pathname: `${this.buildFolderPath(folder)}/${file.originalname}`,
+					})),
+				])
+
+			if (folderImages.length > 0) {
 				throw new HttpException(
 					{
 						status: HttpStatus.BAD_REQUEST,
@@ -103,12 +123,18 @@ export class FolderService {
 					{ cause: new Error() }
 				)
 			}
-			const imageList = await this.awsRepository.imagesUpload(
+			const imageList = await this.storageService.uploadImages(
 				folder.name,
 				fileList
 			)
 
-			await this.folderImageRepository.createFolderImages(id, imageList)
+			await this.folderImageRepository.createFolderImages(
+				id,
+				imageList.map((image) => ({
+					...image,
+					pathname: `${this.buildFolderPath(folder)}/${image.originalname}`,
+				}))
+			)
 
 			return { status: 200 }
 		} catch (error) {
@@ -123,8 +149,8 @@ export class FolderService {
 			folder: { name },
 			...image
 		} = folderImage
-		console.log(folderImage)
-		const _awsResponse = await this.awsRepository.imageDelete(name, image)
+
+		await this.storageService.deleteImage(name, image)
 		return { status: 200 }
 	}
 }

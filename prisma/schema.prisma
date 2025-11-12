@@ -74,11 +74,11 @@ model Image{
 model FolderImage{
   id Int @id @default(autoincrement())
   fieldname String
-  originalname String @unique
+  pathname String @unique
+  originalname String 
   mimetype String
   size Int
   url String
   folder  Folder @relation(fields: [folderId], references: [id] , onDelete: Cascade, onUpdate: Cascade)
-  folderId Int
-  
+  folderId Int 
 }

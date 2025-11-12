@@ -1,6 +1,6 @@
 import { ApiProperty, getSchemaPath } from "@nestjs/swagger"
-import type { SeriesResDto } from "src/modules/series/dto/response-series.dto"
-import { WriteTagTagResDto } from "./response-writeTag.dto"
+import { SeriesResDto } from "src/modules/series/dto/response-series.dto"
+import { TagResDto } from "src/modules/tag/dto/response-tag.dto"
 
 export class WriteResDto {
 	@ApiProperty({ description: "글 id" })
@@ -41,12 +41,12 @@ export class WriteFullResDto extends WriteResDto {
 	@ApiProperty({
 		description: "태그",
 		default: [],
-		type: WriteTagTagResDto,
+		type: TagResDto,
 		items: {
-			type: getSchemaPath(WriteTagTagResDto),
+			type: getSchemaPath(TagResDto),
 		},
 	})
-	tags: WriteTagTagResDto[]
+	tags: TagResDto[]
 }
 
 export class GetWriteDto {

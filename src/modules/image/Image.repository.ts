@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import type { PrismaService } from "../prisma/prisma.service"
+import { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class ImageRepository {
@@ -9,7 +9,7 @@ export class ImageRepository {
 		fileList: Array<Omit<Express.Multer.File, "buffer"> & { url: string }>
 	) {
 		const images = await this.prisma.image.createMany({
-			data: fileList.map(({ destination, stream, path, encoding, ...file }) => ({
+			data: fileList.map(({ destination, stream, path, ...file }) => ({
 				...file,
 			})),
 		})

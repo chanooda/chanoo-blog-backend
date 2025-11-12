@@ -1,10 +1,10 @@
 import { HttpStatus, Injectable } from "@nestjs/common"
-import type { Tag } from "generated/prisma"
-import type { CommonResponse } from "src/common/dto/response.dto"
-import type { CreateTagDto } from "./dto/create-tag.dto"
-import type { TagResDto } from "./dto/response-tag.dto"
-import type { UpdateTagDto } from "./dto/update-tag.dto"
-import type { TagRepository } from "./tag.repository"
+import { Tag } from "generated/prisma"
+import { CommonResponse } from "src/common/dto/response.dto"
+import { CreateTagDto } from "./dto/create-tag.dto"
+import { TagResDto } from "./dto/response-tag.dto"
+import { UpdateTagDto } from "./dto/update-tag.dto"
+import { TagRepository } from "./tag.repository"
 
 @Injectable()
 export class TagService {

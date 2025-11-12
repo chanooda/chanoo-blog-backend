@@ -1,4 +1,4 @@
-import type { HttpStatus } from "@nestjs/common"
+import { HttpStatus } from "@nestjs/common"
 import { IsNumberString } from "class-validator"
 
 export class CommonResponse<DATA = null, META = null> {
