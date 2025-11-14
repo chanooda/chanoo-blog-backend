@@ -23,8 +23,8 @@ export class AuthGuard implements CanActivate {
 		const token = this.extractTokenFromHeader(request)
 		if (!token) {
 			throw new StandardHttpException(
-				"인증 토큰이 필요합니다.",
-				"MISSING_TOKEN",
+				"유효하지 않은 인증 정보입니다.",
+				"UNAUTHORIZED",
 				HttpStatus.UNAUTHORIZED
 			)
 		}
@@ -37,8 +37,8 @@ export class AuthGuard implements CanActivate {
 			request.master = payload
 		} catch {
 			throw new StandardHttpException(
-				"유효하지 않은 인증 토큰입니다.",
-				"INVALID_TOKEN",
+				"유효하지 않은 인증 정보입니다.",
+				"UNAUTHORIZED",
 				HttpStatus.UNAUTHORIZED
 			)
 		}
