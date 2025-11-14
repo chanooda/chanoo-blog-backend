@@ -1,5 +1,6 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common"
+import { HttpStatus, Injectable } from "@nestjs/common"
 import { JwtService } from "@nestjs/jwt"
+import { StandardHttpException } from "src/common/exception/standard-http.exception"
 import { SignInDto } from "./dto/signIn.dto"
 
 @Injectable()
@@ -13,7 +14,11 @@ export class AuthService {
 		const { password, username } = signInDto
 
 		if (username !== masterUsername || password !== masterPassword) {
-			throw new UnauthorizedException()
+			throw new StandardHttpException(
+				"로그인 정보가 올바르지 않습니다.",
+				"INVALID_CREDENTIALS",
+				HttpStatus.UNAUTHORIZED
+			)
 		}
 
 		const payload = { username }

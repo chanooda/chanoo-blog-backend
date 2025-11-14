@@ -40,7 +40,7 @@ import { AppService } from "./app.service"
 		WriteModule,
 		AuthModule.forRoot({
 			privateKey: process.env.JWT_SECRET_KEY,
-			expiresIn: process.env.JWT_EXPIRES_IN, // 기본값 7일
+			expiresIn: Number(process.env.JWT_EXPIRES_IN),
 		}),
 	],
 	controllers: [AppController],

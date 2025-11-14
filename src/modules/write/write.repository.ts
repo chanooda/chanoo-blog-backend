@@ -1,7 +1,7 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
+import { HttpStatus, Injectable } from "@nestjs/common"
 import { Prisma } from "generated/prisma"
-
 import { IdRes } from "src/common/dto/response.dto"
+import { StandardHttpException } from "src/common/exception/standard-http.exception"
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateWriteDto } from "./dto/create-write.dto"
 import { PublicWriteFindAllDto } from "./dto/find-public-write.dto"
@@ -84,9 +84,11 @@ export class WriteRepository {
 			return { id: write.id }
 		} catch (error) {
 			console.error(error)
-			throw new HttpException(
-				{ error, status: HttpStatus.BAD_REQUEST },
-				HttpStatus.BAD_REQUEST
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
 			)
 		}
 	}
@@ -193,9 +195,11 @@ export class WriteRepository {
 			return { id: write.id }
 		} catch (error) {
 			console.error(error)
-			throw new HttpException(
-				{ error, status: HttpStatus.BAD_REQUEST },
-				HttpStatus.BAD_REQUEST
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
 			)
 		}
 	}
@@ -262,9 +266,11 @@ export class WriteRepository {
 			return flattened
 		} catch (error) {
 			console.error(error)
-			throw new HttpException(
-				{ error, status: HttpStatus.BAD_REQUEST },
-				HttpStatus.BAD_REQUEST
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
 			)
 		}
 	}
@@ -294,11 +300,9 @@ export class WriteRepository {
 				},
 			})
 			if (!write) {
-				throw new HttpException(
-					{
-						status: HttpStatus.NOT_FOUND,
-						error: "해당 id의 유저가 존재하지 않습니다.",
-					},
+				throw new StandardHttpException(
+					"해당 id의 글이 존재하지 않습니다.",
+					"WRITE_NOT_FOUND",
 					HttpStatus.NOT_FOUND
 				)
 			}
@@ -310,12 +314,11 @@ export class WriteRepository {
 			}
 		} catch (error) {
 			console.error(error)
-			throw new HttpException(
-				{
-					status: HttpStatus.EXPECTATION_FAILED,
-					error: error,
-				},
-				HttpStatus.EXPECTATION_FAILED
+			throw new StandardHttpException(
+				"글 조회 중 오류가 발생했습니다.",
+				"WRITE_FIND_ERROR",
+				HttpStatus.EXPECTATION_FAILED,
+				error
 			)
 		}
 	}
@@ -344,11 +347,9 @@ export class WriteRepository {
 				})
 
 				if (!write) {
-					throw new HttpException(
-						{
-							status: HttpStatus.NOT_FOUND,
-							error: "해당 id의 유저가 존재하지 않습니다.",
-						},
+					throw new StandardHttpException(
+						"해당 id의 글이 존재하지 않습니다.",
+						"WRITE_NOT_FOUND",
 						HttpStatus.NOT_FOUND
 					)
 				}
@@ -408,12 +409,11 @@ export class WriteRepository {
 			})
 		} catch (error) {
 			console.log(error)
-			throw new HttpException(
-				{
-					status: HttpStatus.EXPECTATION_FAILED,
-					error: error,
-				},
-				HttpStatus.EXPECTATION_FAILED
+			throw new StandardHttpException(
+				"글 조회 중 오류가 발생했습니다.",
+				"WRITE_FIND_ERROR",
+				HttpStatus.EXPECTATION_FAILED,
+				error
 			)
 		}
 	}
@@ -427,12 +427,11 @@ export class WriteRepository {
 			})
 			return writeList
 		} catch (e) {
-			throw new HttpException(
-				{
-					status: HttpStatus.INTERNAL_SERVER_ERROR,
-					error: e,
-				},
-				HttpStatus.INTERNAL_SERVER_ERROR
+			throw new StandardHttpException(
+				"글 ID 목록 조회 중 오류가 발생했습니다.",
+				"WRITE_ID_LIST_ERROR",
+				HttpStatus.INTERNAL_SERVER_ERROR,
+				e
 			)
 		}
 	}
@@ -499,9 +498,11 @@ export class WriteRepository {
 			return flattened
 		} catch (error) {
 			console.error(error)
-			throw new HttpException(
-				{ error, status: HttpStatus.BAD_REQUEST },
-				HttpStatus.BAD_REQUEST
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
 			)
 		}
 	}
@@ -535,11 +536,9 @@ export class WriteRepository {
 				},
 			})
 			if (!write) {
-				throw new HttpException(
-					{
-						status: HttpStatus.NOT_FOUND,
-						error: "해당 글이 존재하지 않습니다.",
-					},
+				throw new StandardHttpException(
+					"해당 id의 공개된 글이 존재하지 않습니다.",
+					"PUBLIC_WRITE_NOT_FOUND",
 					HttpStatus.NOT_FOUND
 				)
 			}
@@ -551,12 +550,11 @@ export class WriteRepository {
 			}
 		} catch (error) {
 			console.error(error)
-			throw new HttpException(
-				{
-					status: HttpStatus.EXPECTATION_FAILED,
-					error: error,
-				},
-				HttpStatus.EXPECTATION_FAILED
+			throw new StandardHttpException(
+				"글 조회 중 오류가 발생했습니다.",
+				"WRITE_FIND_ERROR",
+				HttpStatus.EXPECTATION_FAILED,
+				error
 			)
 		}
 	}

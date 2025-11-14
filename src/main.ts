@@ -1,6 +1,7 @@
 import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger"
+import { HttpExceptionFilter } from "./common/filter/http-exception.filter"
 import { AppModule } from "./modules/app/app.module"
 
 async function bootstrap() {
@@ -11,6 +12,7 @@ async function bootstrap() {
 	app.setGlobalPrefix("api")
 
 	app.useGlobalPipes(new ValidationPipe({ transform: true }))
+	app.useGlobalFilters(new HttpExceptionFilter())
 
 	const config = new DocumentBuilder()
 		.setTitle("chanoo blog")

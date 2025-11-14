@@ -17,8 +17,7 @@ export class AuthModule {
 					global: true,
 					secret: options.privateKey,
 					signOptions: {
-						// @ts-expect-error - expiresIn accepts string or number
-						expiresIn: options.expiresIn || "7d", // 기본값 7일
+						expiresIn: options.expiresIn,
 					},
 				}),
 			],
