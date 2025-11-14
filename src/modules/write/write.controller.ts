@@ -9,6 +9,7 @@ import {
 	Post,
 	Query,
 	UseInterceptors,
+	UsePipes,
 } from "@nestjs/common"
 import { NoFilesInterceptor } from "@nestjs/platform-express"
 import {
@@ -18,6 +19,7 @@ import {
 	ApiTags,
 } from "@nestjs/swagger"
 import { CommonResponse, IdReq, IdRes } from "src/common/dto/response.dto"
+import { PlainTextPipe } from "src/pipe/plain-text.pipe"
 import { CreateWriteDto } from "./dto/create-write.dto"
 import { WriteFindAllDto } from "./dto/find-write.dto"
 import {
@@ -37,6 +39,7 @@ export class WriteController {
 	@ApiConsumes("multipart/form-data")
 	@Post()
 	@UseInterceptors(NoFilesInterceptor())
+	@UsePipes(PlainTextPipe)
 	async create(
 		@Body() createWriteDto: CreateWriteDto
 	): Promise<CommonResponse<IdRes>> {
@@ -51,6 +54,7 @@ export class WriteController {
 	@ApiConsumes("multipart/form-data")
 	@Patch(":id")
 	@UseInterceptors(NoFilesInterceptor())
+	@UsePipes(PlainTextPipe)
 	update(
 		@Param("id") id: string,
 		@Body() updateWriteDto: UpdateWriteDto

@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common"
 import { Prisma } from "generated/prisma"
+
 import { IdRes } from "src/common/dto/response.dto"
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateWriteDto } from "./dto/create-write.dto"
@@ -11,18 +12,18 @@ export class WriteRepository {
 	constructor(private prisma: PrismaService) {}
 
 	async create(createWriteDto: CreateWriteDto): Promise<IdRes> {
-		const { content, isPublish, title, imgUrl, seriesName, tagNames } =
+		const { content, isPublish, title, imgUrl, seriesName, tagNames, plainText } =
 			createWriteDto
 
-		const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]")
-
 		try {
+			const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]")
 			const write = await this.prisma.$transaction(async (tx) => {
 				const write = await tx.write.create({
 					data: {
 						isPublish,
 						title,
 						content,
+						...(plainText && { plainText }),
 						...(imgUrl && { imgUrl }),
 						...(seriesName && {
 							series: {
@@ -92,12 +93,10 @@ export class WriteRepository {
 	}
 
 	async update(id: number, updateWriteDto: UpdateWriteDto): Promise<IdRes> {
-		const { content, isPublish, title, imgUrl, seriesName, tagNames } =
+		const { content, isPublish, title, imgUrl, seriesName, tagNames, plainText } =
 			updateWriteDto
 
 		const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]")
-
-		console.log(updateWriteDto)
 
 		try {
 			const write = await this.prisma.$transaction(async (tx) => {
@@ -121,13 +120,12 @@ export class WriteRepository {
 					}
 				})
 
-				console.log("deletedWriteTagId", deletedWritesTags)
-
 				const write = await tx.write.update({
 					data: {
 						isPublish,
 						title,
 						content,
+						...(plainText && { plainText }),
 						...(imgUrl && { imgUrl }),
 						...(seriesName
 							? {
@@ -210,10 +208,10 @@ export class WriteRepository {
 			const prisma = this.prisma.$extends({
 				result: {
 					write: {
-						content: {
-							needs: { content: true },
+						plainText: {
+							needs: { plainText: true },
 							compute(write) {
-								return write.content.slice(0, 600)
+								return write.plainText?.slice(0, 600)
 							},
 						},
 					},
@@ -246,6 +244,9 @@ export class WriteRepository {
 						},
 					},
 				},
+				omit: {
+					content: true,
+				},
 				orderBy: {
 					createdAt: "desc",
 				},
@@ -262,6 +263,10 @@ export class WriteRepository {
 			return flattened
 		} catch (error) {
 			console.error(error)
+			throw new HttpException(
+				{ error, status: HttpStatus.BAD_REQUEST },
+				HttpStatus.BAD_REQUEST
+			)
 		}
 	}
 

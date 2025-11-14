@@ -1,4 +1,4 @@
-import { ApiProperty, getSchemaPath } from "@nestjs/swagger"
+import { ApiProperty, getSchemaPath, OmitType } from "@nestjs/swagger"
 import { SeriesResDto } from "src/modules/series/dto/response-series.dto"
 import { TagResDto } from "src/modules/tag/dto/response-tag.dto"
 
@@ -32,9 +32,12 @@ export class WriteResDto {
 
 	@ApiProperty({ description: "수정일" })
 	updatedAt: Date
+
+	@ApiProperty({ description: "마크다운 제거된 본문" })
+	plainText: string
 }
 
-export class WriteFullResDto extends WriteResDto {
+export class WriteFullResDto extends OmitType(WriteResDto, ["content"]) {
 	@ApiProperty({ description: "series" })
 	series: SeriesResDto
 

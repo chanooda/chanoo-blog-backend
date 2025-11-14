@@ -10,20 +10,11 @@ export class WriteService {
 	constructor(private writeRepository: WriteRepository) {}
 
 	async create(createWriteDto: CreateWriteDto): Promise<IdRes> {
-		try {
-			const write = await this.writeRepository.create(createWriteDto)
-			return write
-		} catch (error) {
-			return error
-		}
+		return await this.writeRepository.create(createWriteDto)
 	}
 
 	async findAll(writeFindAllDto: WriteFindAllDto) {
-		try {
-			return await this.writeRepository.findAll(writeFindAllDto)
-		} catch (error) {
-			return error
-		}
+		return await this.writeRepository.findAll(writeFindAllDto)
 	}
 
 	async findOne(id: number) {
@@ -31,11 +22,7 @@ export class WriteService {
 	}
 
 	async update(id: number, updateWriteDto: UpdateWriteDto) {
-		try {
-			return await this.writeRepository.update(id, updateWriteDto)
-		} catch (error) {
-			return error
-		}
+		return await this.writeRepository.update(id, updateWriteDto)
 	}
 
 	async remove(id: number) {

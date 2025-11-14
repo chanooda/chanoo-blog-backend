@@ -41,6 +41,7 @@
 		"joi": "^18.0.1",
 		"prisma": "^6.18.0",
 		"reflect-metadata": "^0.2.2",
+		"remove-markdown": "^0.6.2",
 		"rxjs": "^7.8.2",
 		"sharp": "^0.34.4",
 		"swagger-ui-express": "^5.0.1",
@@ -84,7 +85,8 @@
 	"pnpm": {
 		"supportedArchitectures": {
 			"os": [
-				"linux"
+				"linux",
+				"darwin"
 			],
 			"cpu": [
 				"x64",

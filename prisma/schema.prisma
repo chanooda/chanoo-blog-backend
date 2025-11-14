@@ -39,7 +39,8 @@ model Write {
   title     String
   imgUrl    String?
   seriesId  Int?
-  content   String       
+  content   String  
+  plainText String?
   isPublish Boolean
   series    Series?      @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   view      Int?         @default(0)

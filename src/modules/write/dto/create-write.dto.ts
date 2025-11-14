@@ -17,6 +17,14 @@ export class CreateWriteDto {
 	@IsNotEmpty()
 	content: string
 
+	@ApiProperty({
+		description: "마크다운 제거된 본문 (자동 생성)",
+		required: false,
+	})
+	@IsString()
+	@IsOptional()
+	plainText?: string
+
 	@Transform(({ value }) => {
 		if (value === "true") return true
 		if (value === "false") return false
