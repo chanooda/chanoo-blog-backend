@@ -25,6 +25,7 @@ import { AppService } from "./app.service"
 				MASTER_ID: Joi.string().required(),
 				MASTER_PW: Joi.string().required(),
 				JWT_SECRET_KEY: Joi.string().required(),
+				JWT_EXPIRES_IN: Joi.string().optional(),
 				CLOUDFLARE_R2_ACCOUNT_ID: Joi.string().required(),
 				CLOUDFLARE_R2_ACCESS_KEY_ID: Joi.string().required(),
 				CLOUDFLARE_R2_SECRET_ACCESS_KEY: Joi.string().required(),
@@ -39,6 +40,7 @@ import { AppService } from "./app.service"
 		WriteModule,
 		AuthModule.forRoot({
 			privateKey: process.env.JWT_SECRET_KEY,
+			expiresIn: process.env.JWT_EXPIRES_IN, // 기본값 7일
 		}),
 	],
 	controllers: [AppController],

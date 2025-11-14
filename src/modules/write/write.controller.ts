@@ -8,17 +8,20 @@ import {
 	Patch,
 	Post,
 	Query,
+	UseGuards,
 	UseInterceptors,
 	UsePipes,
 } from "@nestjs/common"
 import { NoFilesInterceptor } from "@nestjs/platform-express"
 import {
+	ApiBearerAuth,
 	ApiConsumes,
 	ApiOkResponse,
 	ApiOperation,
 	ApiTags,
 } from "@nestjs/swagger"
 import { CommonResponse, IdReq, IdRes } from "src/common/dto/response.dto"
+import { AuthGuard } from "src/modules/auth/auth.guard"
 import { PlainTextPipe } from "src/pipe/plain-text.pipe"
 import { CreateWriteDto } from "./dto/create-write.dto"
 import { WriteFindAllDto } from "./dto/find-write.dto"
@@ -32,10 +35,12 @@ import { WriteService } from "./write.service"
 
 @ApiTags("write")
 @Controller("write")
+@UseGuards(AuthGuard)
+@ApiBearerAuth()
 export class WriteController {
 	constructor(private readonly writeService: WriteService) {}
 
-	@ApiOperation({ summary: "글 생성하기" })
+	@ApiOperation({ summary: "글 생성하기 (관리자 전용)" })
 	@ApiConsumes("multipart/form-data")
 	@Post()
 	@UseInterceptors(NoFilesInterceptor())
@@ -50,7 +55,7 @@ export class WriteController {
 		}
 	}
 
-	@ApiOperation({ summary: "글 수정하기" })
+	@ApiOperation({ summary: "글 수정하기 (관리자 전용)" })
 	@ApiConsumes("multipart/form-data")
 	@Patch(":id")
 	@UseInterceptors(NoFilesInterceptor())
@@ -62,7 +67,7 @@ export class WriteController {
 		return this.writeService.update(+id, updateWriteDto)
 	}
 
-	@ApiOperation({ summary: "글 모두 가져오기" })
+	@ApiOperation({ summary: "글 모두 가져오기 (관리자 전용)" })
 	@ApiOkResponse({
 		type: GetWritesDto,
 	})
@@ -78,7 +83,7 @@ export class WriteController {
 	}
 
 	@Get(":id")
-	@ApiOperation({ summary: "글 가져오기" })
+	@ApiOperation({ summary: "글 가져오기 (관리자 전용)" })
 	@ApiOkResponse({
 		type: GetWriteDto,
 	})
@@ -93,6 +98,7 @@ export class WriteController {
 	}
 
 	@Delete(":id")
+	@ApiOperation({ summary: "글 삭제하기 (관리자 전용)" })
 	async remove(@Param() { id }: IdReq) {
 		await this.writeService.remove(+id)
 
@@ -102,6 +108,7 @@ export class WriteController {
 	}
 
 	@Get("/id-list")
+	@ApiOperation({ summary: "글 ID 목록 가져오기 (관리자 전용)" })
 	async writeIdList() {
 		return {
 			status: HttpStatus.OK,

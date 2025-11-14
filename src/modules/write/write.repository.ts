@@ -4,6 +4,7 @@ import { Prisma } from "generated/prisma"
 import { IdRes } from "src/common/dto/response.dto"
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateWriteDto } from "./dto/create-write.dto"
+import { PublicWriteFindAllDto } from "./dto/find-public-write.dto"
 import { WriteFindAllDto } from "./dto/find-write.dto"
 import { UpdateWriteDto } from "./dto/update-write.dto"
 
@@ -76,8 +77,6 @@ export class WriteRepository {
 						},
 					})
 				}
-
-				console.log(write)
 
 				return write
 			})
@@ -396,11 +395,6 @@ export class WriteRepository {
 					const writeTag = write.tags.filter(
 						(writeTag) => writeTag.tag.writes.length === 1
 					)
-					console.log(write)
-					console.log("-------------------------")
-					console.log(writeTag)
-					console.log("-------------------------")
-					console.log(writeTag.map((tag) => tag.tag.id))
 					if (writeTag.length > 0) {
 						await tx.tag.deleteMany({
 							where: {
@@ -414,7 +408,6 @@ export class WriteRepository {
 			})
 		} catch (error) {
 			console.log(error)
-			console.log("aslkdfjlasjdflkajsdfja")
 			throw new HttpException(
 				{
 					status: HttpStatus.EXPECTATION_FAILED,
@@ -440,6 +433,130 @@ export class WriteRepository {
 					error: e,
 				},
 				HttpStatus.INTERNAL_SERVER_ERROR
+			)
+		}
+	}
+
+	async findAllPublic(publicWriteFindAllDto: PublicWriteFindAllDto) {
+		const { limit, page, search, seriesId, tagId } = publicWriteFindAllDto
+
+		try {
+			const prisma = this.prisma.$extends({
+				result: {
+					write: {
+						plainText: {
+							needs: { plainText: true },
+							compute(write) {
+								return write.plainText?.slice(0, 600)
+							},
+						},
+					},
+				},
+			})
+			const writes = await prisma.write.findMany({
+				skip: page * 10 || 0,
+				take: limit || 10,
+				where: {
+					isPublish: true, // 공개된 글만
+					...(search && {
+						title: {
+							contains: search || "",
+						},
+					}),
+					...(tagId && {
+						tags: {
+							some: {
+								tagId: tagId,
+							},
+						},
+					}),
+					...(seriesId && { seriesId }),
+				},
+				include: {
+					series: true,
+					tags: {
+						select: {
+							tag: true,
+						},
+					},
+				},
+				omit: {
+					content: true,
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			})
+
+			// tags: [{ tag: { id, name } }] -> [{ id, name }]
+			const flattened = (writes || []).map((write) => ({
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}))
+
+			return flattened
+		} catch (error) {
+			console.error(error)
+			throw new HttpException(
+				{ error, status: HttpStatus.BAD_REQUEST },
+				HttpStatus.BAD_REQUEST
+			)
+		}
+	}
+
+	async findOnePublic(id: number) {
+		try {
+			const write = await this.prisma.write.findFirst({
+				where: {
+					id,
+					isPublish: true, // 공개된 글만
+				},
+				include: {
+					series: {
+						include: {
+							writes: {
+								where: {
+									isPublish: true, // 시리즈 내 공개된 글만
+								},
+								select: {
+									id: true,
+									title: true,
+								},
+							},
+						},
+					},
+					tags: {
+						select: {
+							tag: true,
+						},
+					},
+				},
+			})
+			if (!write) {
+				throw new HttpException(
+					{
+						status: HttpStatus.NOT_FOUND,
+						error: "해당 글이 존재하지 않습니다.",
+					},
+					HttpStatus.NOT_FOUND
+				)
+			}
+			return {
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}
+		} catch (error) {
+			console.error(error)
+			throw new HttpException(
+				{
+					status: HttpStatus.EXPECTATION_FAILED,
+					error: error,
+				},
+				HttpStatus.EXPECTATION_FAILED
 			)
 		}
 	}

@@ -11,10 +11,15 @@ export class AuthModule {
 	static forRoot(options: AuthModuleOption): DynamicModule {
 		return {
 			module: AuthModule,
+			global: true,
 			imports: [
 				JwtModule.register({
 					global: true,
 					secret: options.privateKey,
+					signOptions: {
+						// @ts-expect-error - expiresIn accepts string or number
+						expiresIn: options.expiresIn || "7d", // 기본값 7일
+					},
 				}),
 			],
 			controllers: [AuthController],
@@ -23,7 +28,7 @@ export class AuthModule {
 				AuthGuard,
 				AuthService,
 			],
-			exports: [AuthGuard],
+			exports: [AuthGuard, JWT_SECRET_KEY],
 		}
 	}
 }

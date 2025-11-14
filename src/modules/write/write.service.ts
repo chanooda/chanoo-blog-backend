@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import { IdRes } from "src/common/dto/response.dto"
 import { CreateWriteDto } from "./dto/create-write.dto"
+import { PublicWriteFindAllDto } from "./dto/find-public-write.dto"
 import { WriteFindAllDto } from "./dto/find-write.dto"
 import { UpdateWriteDto } from "./dto/update-write.dto"
 import { WriteRepository } from "./write.repository"
@@ -31,5 +32,13 @@ export class WriteService {
 
 	async writeIdList() {
 		return await this.writeRepository.writeIdList()
+	}
+
+	async findAllPublic(publicWriteFindAllDto: PublicWriteFindAllDto) {
+		return await this.writeRepository.findAllPublic(publicWriteFindAllDto)
+	}
+
+	async findOnePublic(id: number) {
+		return await this.writeRepository.findOnePublic(id)
 	}
 }
