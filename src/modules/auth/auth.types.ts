@@ -1,3 +1,4 @@
 export interface AuthModuleOption {
-  privateKey: string;
+	privateKey: string
+	expiresIn?: number
 }

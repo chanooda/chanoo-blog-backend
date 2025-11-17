@@ -1,19 +1,18 @@
-version: '3'
-  
-services: 
+version: "3"
 
+services:
   module:
-    image: node:18-slim
+    image: node:22-slim
     working_dir: /app
-    volumes: 
+    volumes:
       - .:/app
     env_file: ./.env
-    command: sh -c "apt-get update -y && apt-get install -y openssl && npm i -g pnpm && pnpm install --force && prisma generate"
-   
+    command: sh -c "apt-get update -y && apt-get install -y openssl && npm i -g pnpm && pnpm install --frozen-lockfile && pnpm exec prisma generate"
+
   server:
-    image: node:18-slim
+    image: node:22-slim
     working_dir: /app
-    volumes: 
+    volumes:
       - .:/app
     env_file: ./.env
     depends_on:

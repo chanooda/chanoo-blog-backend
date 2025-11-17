@@ -1,433 +1,561 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { IdRes } from 'src/common/dto/response.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateWriteDto } from './dto/create-write.dto';
-import { WriteFindAllDto } from './dto/find-write.dto';
-import { UpdateWriteDto } from './dto/update-write.dto';
+import { HttpStatus, Injectable } from "@nestjs/common"
+import { Prisma } from "generated/prisma"
+import { IdRes } from "src/common/dto/response.dto"
+import { StandardHttpException } from "src/common/exception/standard-http.exception"
+import { PrismaService } from "../prisma/prisma.service"
+import { CreateWriteDto } from "./dto/create-write.dto"
+import { PublicWriteFindAllDto } from "./dto/find-public-write.dto"
+import { WriteFindAllDto } from "./dto/find-write.dto"
+import { UpdateWriteDto } from "./dto/update-write.dto"
 
 @Injectable()
 export class WriteRepository {
-  constructor(private prisma: PrismaService) {}
+	constructor(private prisma: PrismaService) {}
 
-  async create(createWriteDto: CreateWriteDto): Promise<IdRes> {
-    const { content, isPublish, title, imgUrl, seriesName, tagNames } =
-      createWriteDto;
+	async create(createWriteDto: CreateWriteDto): Promise<IdRes> {
+		const { content, isPublish, title, imgUrl, seriesName, tagNames, plainText } =
+			createWriteDto
 
-    const parsedTagNames: string[] = JSON.parse(String(tagNames) || '[]');
+		try {
+			const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]")
+			const write = await this.prisma.$transaction(async (tx) => {
+				const write = await tx.write.create({
+					data: {
+						isPublish,
+						title,
+						content,
+						...(plainText && { plainText }),
+						...(imgUrl && { imgUrl }),
+						...(seriesName && {
+							series: {
+								connectOrCreate: {
+									create: {
+										name: seriesName,
+									},
+									where: {
+										name: seriesName,
+									},
+								},
+							},
+						}),
+						...(parsedTagNames &&
+							parsedTagNames.length > 0 && {
+								tags: {
+									create: parsedTagNames?.map((tagName) => ({
+										tag: {
+											connectOrCreate: {
+												create: {
+													name: tagName,
+												},
+												where: {
+													name: tagName,
+												},
+											},
+										},
+									})),
+								},
+							}),
+					},
+				})
 
-    try {
-      const write = await this.prisma.$transaction(async (tx) => {
-        const write = await tx.write.create({
-          data: {
-            isPublish,
-            title,
-            content,
-            ...(imgUrl && { imgUrl }),
-            ...(seriesName && {
-              series: {
-                connectOrCreate: {
-                  create: {
-                    name: seriesName,
-                  },
-                  where: {
-                    name: seriesName,
-                  },
-                },
-              },
-            }),
-            ...(parsedTagNames &&
-              parsedTagNames.length > 0 && {
-                tags: {
-                  create: parsedTagNames?.map((tagName) => ({
-                    tag: {
-                      connectOrCreate: {
-                        create: {
-                          name: tagName,
-                        },
-                        where: {
-                          name: tagName,
-                        },
-                      },
-                    },
-                  })),
-                },
-              }),
-          },
-        });
+				if (seriesName) {
+					const series = await tx.series.findFirst({
+						where: {
+							name: seriesName,
+						},
+					})
 
-        if (seriesName) {
-          const series = await tx.series.findFirst({
-            where: {
-              name: seriesName,
-            },
-          });
+					const seriesOrder: Prisma.JsonArray =
+						(series?.writeOrder as Prisma.JsonArray) || []
 
-          const seriesOrder: Prisma.JsonArray =
-            (series?.writeOrder as Prisma.JsonArray) || [];
+					await tx.series.update({
+						where: {
+							name: seriesName,
+						},
+						data: {
+							writeOrder: [...seriesOrder, write.id],
+						},
+					})
+				}
 
-          await tx.series.update({
-            where: {
-              name: seriesName,
-            },
-            data: {
-              writeOrder: [...seriesOrder, write.id],
-            },
-          });
-        }
+				return write
+			})
 
-        console.log(write);
+			return { id: write.id }
+		} catch (error) {
+			console.error(error)
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
+			)
+		}
+	}
 
-        return write;
-      });
+	async update(id: number, updateWriteDto: UpdateWriteDto): Promise<IdRes> {
+		const { content, isPublish, title, imgUrl, seriesName, tagNames, plainText } =
+			updateWriteDto
 
-      return { id: write.id };
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        { error, status: HttpStatus.BAD_REQUEST },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
+		const parsedTagNames: string[] = JSON.parse(String(tagNames) || "[]")
 
-  async update(id: number, updateWriteDto: UpdateWriteDto): Promise<IdRes> {
-    const { content, isPublish, title, imgUrl, seriesName, tagNames } =
-      updateWriteDto;
+		try {
+			const write = await this.prisma.$transaction(async (tx) => {
+				const deletedWritesTags = []
 
-    const parsedTagNames: string[] = JSON.parse(String(tagNames) || '[]');
+				const writesTags = await tx.writesTag.findMany({
+					where: {
+						writeId: id,
+					},
+					include: {
+						tag: true,
+					},
+				})
 
-    console.log(updateWriteDto);
+				writesTags?.forEach((writeTag) => {
+					const index = parsedTagNames.indexOf(writeTag.tag.name)
+					if (index === -1) {
+						deletedWritesTags.push(writeTag)
+					} else {
+						parsedTagNames.splice(index, 1)
+					}
+				})
 
-    try {
-      const write = await this.prisma.$transaction(async (tx) => {
-        const deletedWritesTags = [];
+				const write = await tx.write.update({
+					data: {
+						isPublish,
+						title,
+						content,
+						...(plainText && { plainText }),
+						...(imgUrl && { imgUrl }),
+						...(seriesName
+							? {
+									series: {
+										connectOrCreate: {
+											create: {
+												name: seriesName,
+											},
+											where: {
+												name: seriesName,
+											},
+										},
+									},
+								}
+							: {
+									series: {
+										disconnect: true,
+									},
+								}),
+						tags: {
+							delete: deletedWritesTags?.map((deletedWritesTag) => ({
+								id: deletedWritesTag.id,
+							})),
+							create: parsedTagNames?.map((name) => ({
+								tag: {
+									connectOrCreate: {
+										create: {
+											name: name,
+										},
+										where: {
+											name: name,
+										},
+									},
+								},
+							})),
+						},
+					},
+					where: {
+						id,
+					},
+				})
 
-        const writesTags = await tx.writesTag.findMany({
-          where: {
-            writeId: id,
-          },
-          include: {
-            tag: true,
-          },
-        });
+				if (seriesName) {
+					const series = await tx.series.findFirst({
+						where: {
+							name: seriesName,
+						},
+					})
 
-        writesTags?.forEach((writeTag) => {
-          const index = parsedTagNames.findIndex(
-            (tagName) => tagName === writeTag.tag.name,
-          );
-          if (index === -1) {
-            deletedWritesTags.push(writeTag);
-          } else {
-            parsedTagNames.splice(index, 1);
-          }
-        });
+					const seriesOrder: Prisma.JsonArray =
+						(series?.writeOrder as Prisma.JsonArray) || []
 
-        console.log('deletedWriteTagId', deletedWritesTags);
+					if (!seriesOrder.includes(write.id))
+						await tx.series.update({
+							where: {
+								name: seriesName,
+							},
+							data: {
+								writeOrder: [...seriesOrder, write.id],
+							},
+						})
+				}
 
-        const write = await tx.write.update({
-          data: {
-            isPublish,
-            title,
-            content,
-            ...(imgUrl && { imgUrl }),
-            ...(seriesName
-              ? {
-                  series: {
-                    connectOrCreate: {
-                      create: {
-                        name: seriesName,
-                      },
-                      where: {
-                        name: seriesName,
-                      },
-                    },
-                  },
-                }
-              : {
-                  series: {
-                    disconnect: true,
-                  },
-                }),
-            tags: {
-              delete: deletedWritesTags?.map((deletedWritesTag) => ({
-                id: deletedWritesTag.id,
-              })),
-              create: parsedTagNames?.map((name) => ({
-                tag: {
-                  connectOrCreate: {
-                    create: {
-                      name: name,
-                    },
-                    where: {
-                      name: name,
-                    },
-                  },
-                },
-              })),
-            },
-          },
-          where: {
-            id,
-          },
-        });
+				return write
+			})
+			return { id: write.id }
+		} catch (error) {
+			console.error(error)
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
+			)
+		}
+	}
 
-        if (seriesName) {
-          const series = await tx.series.findFirst({
-            where: {
-              name: seriesName,
-            },
-          });
+	async findAll(writeFindAllDto: WriteFindAllDto) {
+		const { limit, page, search, seriesId, tagId, isPublish } = writeFindAllDto
 
-          const seriesOrder: Prisma.JsonArray =
-            (series?.writeOrder as Prisma.JsonArray) || [];
+		try {
+			const prisma = this.prisma.$extends({
+				result: {
+					write: {
+						plainText: {
+							needs: { plainText: true },
+							compute(write) {
+								return write.plainText?.slice(0, 600)
+							},
+						},
+					},
+				},
+			})
+			const writes = await prisma.write.findMany({
+				skip: page * 10 || 0,
+				take: limit || 10,
+				where: {
+					...(search && {
+						title: {
+							contains: search || "",
+						},
+					}),
+					...(tagId && {
+						tags: {
+							some: {
+								tagId: tagId,
+							},
+						},
+					}),
+					...(seriesId && { seriesId }),
+					...(isPublish && { isPublish }),
+				},
+				include: {
+					series: true,
+					tags: {
+						select: {
+							tag: true,
+						},
+					},
+				},
+				omit: {
+					content: true,
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			})
 
-          if (!seriesOrder.includes(write.id))
-            await tx.series.update({
-              where: {
-                name: seriesName,
-              },
-              data: {
-                writeOrder: [...seriesOrder, write.id],
-              },
-            });
-        }
+			// tags: [{ tag: { id, name } }] -> [{ id, name }]
+			const flattened = (writes || []).map((write) => ({
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}))
 
-        return write;
-      });
-      return { id: write.id };
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        { error, status: HttpStatus.BAD_REQUEST },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-  }
+			return flattened
+		} catch (error) {
+			console.error(error)
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
+			)
+		}
+	}
 
-  async findAll(writeFindAllDto: WriteFindAllDto) {
-    const { limit, page, search, seriesId, tagId, isPublish } = writeFindAllDto;
+	async findOne(id: number) {
+		try {
+			const write = await this.prisma.write.findUnique({
+				where: {
+					id,
+				},
+				include: {
+					series: {
+						include: {
+							writes: {
+								select: {
+									id: true,
+									title: true,
+								},
+							},
+						},
+					},
+					tags: {
+						select: {
+							tag: true,
+						},
+					},
+				},
+			})
+			if (!write) {
+				throw new StandardHttpException(
+					"해당 id의 글이 존재하지 않습니다.",
+					"WRITE_NOT_FOUND",
+					HttpStatus.NOT_FOUND
+				)
+			}
+			return {
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}
+		} catch (error) {
+			console.error(error)
+			throw new StandardHttpException(
+				"글 조회 중 오류가 발생했습니다.",
+				"WRITE_FIND_ERROR",
+				HttpStatus.EXPECTATION_FAILED,
+				error
+			)
+		}
+	}
 
-    try {
-      const prisma = this.prisma.$extends({
-        result: {
-          write: {
-            content: {
-              needs: { content: true },
-              compute(write) {
-                return write.content.slice(0, 600);
-              },
-            },
-          },
-        },
-      });
-      const writes = await prisma.write.findMany({
-        skip: page * 10 || 0,
-        take: limit || 10,
-        where: {
-          ...(search && {
-            title: {
-              contains: search || '',
-            },
-          }),
-          ...(tagId && {
-            tags: {
-              some: {
-                tagId: tagId,
-              },
-            },
-          }),
-          ...(seriesId && { seriesId }),
-          ...(isPublish && { isPublish }),
-        },
-        include: {
-          series: true,
-          tags: {
-            include: {
-              tag: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+	async delete(id: number) {
+		try {
+			await this.prisma.$transaction(async (tx) => {
+				const write = await tx.write.delete({
+					where: {
+						id,
+					},
+					include: {
+						tags: {
+							select: {
+								tag: {
+									select: {
+										id: true,
+										writes: {
+											take: 1,
+										},
+									},
+								},
+							},
+						},
+					},
+				})
 
-      console.log([]);
+				if (!write) {
+					throw new StandardHttpException(
+						"해당 id의 글이 존재하지 않습니다.",
+						"WRITE_NOT_FOUND",
+						HttpStatus.NOT_FOUND
+					)
+				}
 
-      return writes || [];
-    } catch (error) {
-      console.error(error);
-    }
-  }
+				if (write?.seriesId) {
+					const series = await tx.series.findFirst({
+						where: {
+							id: write.seriesId,
+						},
+						include: {
+							writes: {
+								select: {
+									_count: true,
+								},
+							},
+						},
+					})
 
-  async findOne(id: number) {
-    try {
-      const write = await this.prisma.write.findUnique({
-        where: {
-          id,
-        },
-        include: {
-          series: {
-            include: {
-              writes: {
-                select: {
-                  id: true,
-                  title: true,
-                },
-              },
-            },
-          },
-          tags: {
-            include: {
-              tag: true,
-            },
-          },
-        },
-      });
-      if (!write) {
-        throw new HttpException(
-          {
-            status: HttpStatus.NOT_FOUND,
-            error: '해당 id의 유저가 존재하지 않습니다.',
-          },
-          HttpStatus.NOT_FOUND,
-        );
-      }
-      return write;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        {
-          status: HttpStatus.EXPECTATION_FAILED,
-          error: error,
-        },
-        HttpStatus.EXPECTATION_FAILED,
-      );
-    }
-  }
+					const seriesOrder: Prisma.JsonArray =
+						(series?.writeOrder as Prisma.JsonArray) || []
 
-  async delete(id: number) {
-    try {
-      await this.prisma.$transaction(async (tx) => {
-        const write = await tx.write.delete({
-          where: {
-            id,
-          },
-          include: {
-            tags: {
-              select: {
-                tag: {
-                  select: {
-                    id: true,
-                    writes: {
-                      take: 1,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
+					if (seriesOrder.includes(write.id)) {
+						const deletedWriteOrder = seriesOrder.filter((id) => write.id !== id)
+						if (deletedWriteOrder.length > 0) {
+							tx.series.update({
+								where: { id: write.seriesId },
+								data: {
+									writeOrder: deletedWriteOrder,
+								},
+							})
+						}
+					}
 
-        if (!write) {
-          throw new HttpException(
-            {
-              status: HttpStatus.NOT_FOUND,
-              error: '해당 id의 유저가 존재하지 않습니다.',
-            },
-            HttpStatus.NOT_FOUND,
-          );
-        }
+					if (series.writes.length === 0) {
+						await tx.series.delete({
+							where: {
+								id: series.id,
+							},
+						})
+					}
+				}
+				if (write.tags.length > 0) {
+					// 글이 없는 tag가 있으면 삭제
+					const writeTag = write.tags.filter(
+						(writeTag) => writeTag.tag.writes.length === 1
+					)
+					if (writeTag.length > 0) {
+						await tx.tag.deleteMany({
+							where: {
+								id: {
+									in: writeTag.map((tag) => tag.tag.id),
+								},
+							},
+						})
+					}
+				}
+			})
+		} catch (error) {
+			console.log(error)
+			throw new StandardHttpException(
+				"글 조회 중 오류가 발생했습니다.",
+				"WRITE_FIND_ERROR",
+				HttpStatus.EXPECTATION_FAILED,
+				error
+			)
+		}
+	}
 
-        if (write?.seriesId) {
-          const series = await tx.series.findFirst({
-            where: {
-              id: write.seriesId,
-            },
-            include: {
-              writes: {
-                select: {
-                  _count: true,
-                },
-              },
-            },
-          });
+	async writeIdList() {
+		try {
+			const writeList = await this.prisma.write.findMany({
+				select: {
+					id: true,
+				},
+			})
+			return writeList
+		} catch (e) {
+			throw new StandardHttpException(
+				"글 ID 목록 조회 중 오류가 발생했습니다.",
+				"WRITE_ID_LIST_ERROR",
+				HttpStatus.INTERNAL_SERVER_ERROR,
+				e
+			)
+		}
+	}
 
-          const seriesOrder: Prisma.JsonArray =
-            (series?.writeOrder as Prisma.JsonArray) || [];
+	async findAllPublic(publicWriteFindAllDto: PublicWriteFindAllDto) {
+		const { limit, page, search, seriesId, tagId } = publicWriteFindAllDto
 
-          if (seriesOrder.includes(write.id)) {
-            const deletedWriteOrder = seriesOrder.filter(
-              (id) => write.id !== id,
-            );
-            if (deletedWriteOrder.length > 0) {
-              tx.series.update({
-                where: { id: write.seriesId },
-                data: {
-                  writeOrder: deletedWriteOrder,
-                },
-              });
-            }
-          }
+		try {
+			const prisma = this.prisma.$extends({
+				result: {
+					write: {
+						plainText: {
+							needs: { plainText: true },
+							compute(write) {
+								return write.plainText?.slice(0, 600)
+							},
+						},
+					},
+				},
+			})
+			const writes = await prisma.write.findMany({
+				skip: page * 10 || 0,
+				take: limit || 10,
+				where: {
+					isPublish: true, // 공개된 글만
+					...(search && {
+						title: {
+							contains: search || "",
+						},
+					}),
+					...(tagId && {
+						tags: {
+							some: {
+								tagId: tagId,
+							},
+						},
+					}),
+					...(seriesId && { seriesId }),
+				},
+				include: {
+					series: true,
+					tags: {
+						select: {
+							tag: true,
+						},
+					},
+				},
+				omit: {
+					content: true,
+				},
+				orderBy: {
+					createdAt: "desc",
+				},
+			})
 
-          if (series.writes.length === 0) {
-            await tx.series.delete({
-              where: {
-                id: series.id,
-              },
-            });
-          }
-        }
-        if (write.tags.length > 0) {
-          // 글이 없는 tag가 있으면 삭제
-          const writeTag = write.tags.filter(
-            (writeTag) => writeTag.tag.writes.length === 1,
-          );
-          console.log(write);
-          console.log('-------------------------');
-          console.log(writeTag);
-          console.log('-------------------------');
-          console.log(writeTag.map((tag) => tag.tag.id));
-          if (writeTag.length > 0) {
-            await tx.tag.deleteMany({
-              where: {
-                id: {
-                  in: writeTag.map((tag) => tag.tag.id),
-                },
-              },
-            });
-          }
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      console.log('aslkdfjlasjdflkajsdfja');
-      throw new HttpException(
-        {
-          status: HttpStatus.EXPECTATION_FAILED,
-          error: error,
-        },
-        HttpStatus.EXPECTATION_FAILED,
-      );
-    }
-  }
-  async writeIdList() {
-    try {
-      const writeList = await this.prisma.write.findMany({
-        select: {
-          id: true,
-        },
-      });
-      return writeList;
-    } catch (e) {
-      throw new HttpException(
-        {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          error: e,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
+			// tags: [{ tag: { id, name } }] -> [{ id, name }]
+			const flattened = (writes || []).map((write) => ({
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}))
+
+			return flattened
+		} catch (error) {
+			console.error(error)
+			throw new StandardHttpException(
+				"글 생성 중 오류가 발생했습니다.",
+				"WRITE_CREATE_ERROR",
+				HttpStatus.BAD_REQUEST,
+				error
+			)
+		}
+	}
+
+	async findOnePublic(id: number) {
+		try {
+			const write = await this.prisma.write.findFirst({
+				where: {
+					id,
+					isPublish: true, // 공개된 글만
+				},
+				include: {
+					series: {
+						include: {
+							writes: {
+								where: {
+									isPublish: true, // 시리즈 내 공개된 글만
+								},
+								select: {
+									id: true,
+									title: true,
+								},
+							},
+						},
+					},
+					tags: {
+						select: {
+							tag: true,
+						},
+					},
+				},
+			})
+			if (!write) {
+				throw new StandardHttpException(
+					"해당 id의 공개된 글이 존재하지 않습니다.",
+					"PUBLIC_WRITE_NOT_FOUND",
+					HttpStatus.NOT_FOUND
+				)
+			}
+			return {
+				...write,
+				tags: (write.tags || []).map(
+					(wt: { tag: { id: number; name: string } }) => wt.tag
+				),
+			}
+		} catch (error) {
+			console.error(error)
+			throw new StandardHttpException(
+				"글 조회 중 오류가 발생했습니다.",
+				"WRITE_FIND_ERROR",
+				HttpStatus.EXPECTATION_FAILED,
+				error
+			)
+		}
+	}
 }

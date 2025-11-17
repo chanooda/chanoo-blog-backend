@@ -1,14 +1,13 @@
 
 
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native"]
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma"
 }
 
 datasource db {
-  provider     = "mysql"
-  url          = env("DATABASE_URL")
-  relationMode = "prisma"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Folder {
@@ -40,7 +39,8 @@ model Write {
   title     String
   imgUrl    String?
   seriesId  Int?
-  content   String       @db.LongText
+  content   String  
+  plainText String?
   isPublish Boolean
   series    Series?      @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   view      Int?         @default(0)
@@ -75,11 +75,11 @@ model Image{
 model FolderImage{
   id Int @id @default(autoincrement())
   fieldname String
-  originalname String @unique
+  pathname String @unique
+  originalname String 
   mimetype String
   size Int
   url String
   folder  Folder @relation(fields: [folderId], references: [id] , onDelete: Cascade, onUpdate: Cascade)
-  folderId Int
-  
+  folderId Int 
 }

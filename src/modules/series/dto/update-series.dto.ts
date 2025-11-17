@@ -1,3 +1,3 @@
-import { CreateSeriesDto } from './create-series.dto';
+import { CreateSeriesDto } from "./create-series.dto"
 
 export class UpdateSeriesDto extends CreateSeriesDto {}

@@ -1,20 +1,20 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { FolderController } from './folder.controller';
-import { FolderService } from './folder.service';
+import { Test, type TestingModule } from "@nestjs/testing"
+import { FolderController } from "./folder.controller"
+import { FolderService } from "./folder.service"
 
-describe('FolderController', () => {
-  let controller: FolderController;
+describe("FolderController", () => {
+	let controller: FolderController
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [FolderController],
-      providers: [FolderService],
-    }).compile();
+	beforeEach(async () => {
+		const module: TestingModule = await Test.createTestingModule({
+			controllers: [FolderController],
+			providers: [FolderService],
+		}).compile()
 
-    controller = module.get<FolderController>(FolderController);
-  });
+		controller = module.get<FolderController>(FolderController)
+	})
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
-  });
-});
+	it("should be defined", () => {
+		expect(controller).toBeDefined()
+	})
+})
