@@ -1,117 +1,115 @@
 name: Deploy to Google Cloud VM
 
 on:
-    push:
-        branches: [main]
-    workflow_dispatch:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v5
-              with:
-                  node-version: "18.x"
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"
 
-            - name: Install pnpm
-              uses: pnpm/action-setup@v2
-              with:
-                  version: 8
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
 
-            - name: Get pnpm store directory
-              shell: bash
-              run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-            - name: Setup pnpm cache
-              uses: actions/cache@v3
-              with:
-                  path: ${{ env.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-            - name: Build production bundle
-              run: |
-                  pnpm exec prisma generate
-                  pnpm build
+      - name: Build production bundle
+        run: |
+          pnpm exec prisma generate
+          pnpm build
 
-            - name: Create .env file
-              run: |
-                  touch .env
-                  jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
-              env:
-                  SECRETS_CONTEXT: ${{ toJson(secrets) }}
+      - name: Create .env file
+        run: |
+          touch .env
+          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
-            - name: Prepare deployment files
-              run: |
-                  mkdir -p deploy
-                  cp -r dist deploy/
-                  cp -r generated deploy/ || echo "generated 폴더 없음 (prisma generate 필요)"
-                  cp package.json deploy/
-                  cp pnpm-lock.yaml deploy/
-                  cp Dockerfile deploy/
-                  cp prisma deploy/ -r
-                  cp .env deploy/
-                  cp deploy-blue-green.sh deploy/
-                  cp nginx.conf.template deploy/ || true
+      - name: Prepare deployment files
+        run: |
+          mkdir -p deploy
+          cp -r dist deploy/
+          cp -r generated deploy/ || echo "generated 폴더 없음 (prisma generate 필요)"
+          cp package.json deploy/
+          cp pnpm-lock.yaml deploy/
+          cp Dockerfile deploy/
+          cp prisma deploy/ -r
+          cp .env deploy/
+          cp deploy-blue-green.sh deploy/
+          cp nginx.conf.template deploy/ || true
 
-            - name: Create deployment archive
-              run: |
-                  tar czf deploy.tar.gz deploy/
+      - name: Create deployment archive
+        run: |
+          tar czf deploy.tar.gz deploy/
 
-            - name: Setup SSH
-              run: |
-                  mkdir -p ~/.ssh
-                  echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-                  chmod 600 ~/.ssh/id_rsa
-                  ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.GCP_VM_IP }} >> ~/.ssh/known_hosts
 
-            - name: Copy files to VM
-              run: |
-                  scp -i ~/.ssh/id_rsa deploy.tar.gz ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/tmp/
+      - name: Copy files to VM
+        run: |
+          scp -i ~/.ssh/id_rsa deploy.tar.gz ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }}:/tmp/
 
-            - name: Deploy to VM
-              run: |
-                  ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
-                    set -e
-                    
-                    PROJECT_DIR="/home/ubuntu/blog-backend"
-                    
-                    # 프로젝트 디렉토리 생성
-                    mkdir -p $PROJECT_DIR
-                    
-                    # 기존 파일 백업 (선택사항)
-                    if [ -d "$PROJECT_DIR" ] && [ "$(ls -A $PROJECT_DIR)" ]; then
-                      echo "기존 파일 백업 중..."
-                      cp -r $PROJECT_DIR ${PROJECT_DIR}.backup.$(date +%Y%m%d_%H%M%S) || true
-                    fi
-                    
-                    # 배포 파일 압축 해제
-                    cd $PROJECT_DIR
-                    tar xzf /tmp/deploy.tar.gz -C .
-                    mv deploy/* .
-                    rm -rf deploy deploy.tar.gz
-                    
-                    # 배포 스크립트에 실행 권한 부여
-                    chmod +x deploy-blue-green.sh
-                    
-                    # Blue-Green 무중단 배포 실행
-                    ./deploy-blue-green.sh
-                    
-                    echo "배포 완료!"
-                  EOF
+      - name: Deploy to VM
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_IP }} << 'EOF'
+            set -e
+            
+            PROJECT_DIR="/home/ubuntu/blog-backend"
+            
+            # 프로젝트 디렉토리 생성
+            mkdir -p $PROJECT_DIR
+            
+            # 기존 파일 백업 (선택사항)
+            if [ -d "$PROJECT_DIR" ] && [ "$(ls -A $PROJECT_DIR)" ]; then
+              echo "기존 파일 백업 중..."
+              cp -r $PROJECT_DIR ${PROJECT_DIR}.backup.$(date +%Y%m%d_%H%M%S) || true
+            fi
+            
+            # 배포 파일 압축 해제
+            cd $PROJECT_DIR
+            tar xzf /tmp/deploy.tar.gz -C .
+            mv deploy/* .
+            rm -rf deploy deploy.tar.gz
+            
+            # 배포 스크립트에 실행 권한 부여
+            chmod +x deploy-blue-green.sh
+            
+            # Blue-Green 무중단 배포 실행
+            ./deploy-blue-green.sh
+            
+            echo "배포 완료!"
+          EOF
 
-            - name: Cleanup
-              if: always()
-              run: |
-                  rm -f deploy.tar.gz
-                  rm -rf deploy
+      - name: Cleanup
+        if: always()
+        run: |
+          rm -f deploy.tar.gz
+          rm -rf deploy
