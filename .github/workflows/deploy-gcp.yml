@@ -61,7 +61,7 @@ jobs:
           cp pnpm-lock.yaml deploy/
           cp Dockerfile deploy/
           cp -r prisma deploy/
-          cp .env deploy/
+          cp .env deploy/.
           cp deploy-blue-green.sh deploy/
           cp nginx.conf.template deploy/ || true
 
