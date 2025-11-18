@@ -89,7 +89,6 @@ jobs:
             set -e
             cd /home/${{ secrets.GCP_VM_USER }}/blog-backend
             tar xzf deploy.tar.gz -C .
-            mv deploy/* .
             rm -rf deploy deploy.tar.gz
             chmod +x deploy-blue-green.sh
             ./deploy-blue-green.sh
