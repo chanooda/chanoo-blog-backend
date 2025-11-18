@@ -36,14 +36,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build production bundle
-        run: |
-          pnpm exec prisma generate
-          pnpm build
-
       - name: Create .env file
         run: |
           touch .env
@@ -55,7 +47,6 @@ jobs:
         run: |
           ls -la
           mkdir -p deploy
-          cp -r dist deploy/
           cp -r generated deploy/
           cp package.json deploy/
           cp pnpm-lock.yaml deploy/
@@ -92,8 +83,12 @@ jobs:
             tar xzf deploy.tar.gz -C .
             rm -rf deploy deploy.tar.gz
             chmod +x deploy-blue-green.sh
-            ./deploy-blue-green.sh
-            echo "배포 완료!"
+            LOG_DIR=/home/${{ secrets.GCP_VM_USER }}/blog-backend/logs
+            mkdir -p "$LOG_DIR"
+            TS=$(date +"%Y%m%d-%H%M%S")
+            LOG_FILE="$LOG_DIR/deploy-$TS.log"
+            nohup bash -c "REMOVE_OLD_CONTAINER_ON_DEPLOY=true ./deploy-blue-green.sh > $LOG_FILE 2>&1" >/dev/null 2>&1 &
+            echo "배포 스크립트를 백그라운드로 실행했습니다. PID: $!"
 
       - name: Cleanup
         if: always()
