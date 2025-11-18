@@ -14,6 +14,8 @@ GREEN_PORT=4001
 BLUE_CONTAINER="blog-backend-blue"
 GREEN_CONTAINER="blog-backend-green"
 IMAGE_NAME="blog-backend"
+# GitHub Actions 등 비대화형 환경에서 이전 컨테이너 제거 여부를 제어
+REMOVE_OLD_CONTAINER_ON_DEPLOY="${REMOVE_OLD_CONTAINER_ON_DEPLOY:-false}"
 NGINX_CONFIG="/etc/nginx/sites-available/blog-backend"
 NGINX_ENABLED="/etc/nginx/sites-enabled/blog-backend"
 # 헬스 체크 URL: VM 내부에서 컨테이너를 확인하는 주소 (실제 배포 주소가 아님)
@@ -223,12 +225,13 @@ main() {
             if health_check $deploy_port $deploy_container; then
                 echo -e "${GREEN}✓ 배포 성공!${NC}"
                 
-                # 이전 컨테이너 제거 (선택사항)
-                read -p "이전 컨테이너를 제거하시겠습니까? (y/N): " -n 1 -r
-                echo
-                if [[ $REPLY =~ ^[Yy]$ ]]; then
+                # 이전 컨테이너 자동 제거 (환경 변수로 제어)
+                if [ "$REMOVE_OLD_CONTAINER_ON_DEPLOY" = "true" ]; then
+                    echo -e "${YELLOW}환경 변수에 따라 이전 컨테이너를 제거합니다...${NC}"
                     stop_container $old_container
                     docker image prune -f
+                else
+                    echo -e "${YELLOW}이전 컨테이너를 유지합니다. 제거하려면 REMOVE_OLD_CONTAINER_ON_DEPLOY=true 설정${NC}"
                 fi
             else
                 echo -e "${RED}✗ 최종 헬스 체크 실패 - 롤백 중...${NC}"
