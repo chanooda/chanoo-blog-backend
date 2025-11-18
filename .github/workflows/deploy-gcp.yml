@@ -76,7 +76,24 @@ jobs:
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
           source: "deploy.tar.gz"
-          target: /home/${{ secrets.GCP_VM_USER }}/deploy.tar.gz
+          target: /home/${{ secrets.GCP_VM_USER }}/blog-backend/deploy.tar.gz
+
+      - name: Execute remote SSH commands using SSH key
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.GCP_VM_IP }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /home/${{ secrets.GCP_VM_USER }}/blog-backend
+            tar xzf deploy.tar.gz -C .
+            mv deploy/* .
+            rm -rf deploy deploy.tar.gz
+            chmod +x deploy-blue-green.sh
+            ./deploy-blue-green.sh
+            echo "배포 완료!"
 
       - name: Cleanup
         if: always()
