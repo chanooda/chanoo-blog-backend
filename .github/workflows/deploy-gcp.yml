@@ -76,7 +76,7 @@ jobs:
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
           source: "deploy.tar.gz"
-          target: /home/${{ secrets.GCP_VM_USER }}/blog-backend/deploy.tar.gz
+          target: /home/${{ secrets.GCP_VM_USER }}/blog-backend
 
       - name: Execute remote SSH commands using SSH key
         uses: appleboy/ssh-action@v1
@@ -88,7 +88,7 @@ jobs:
           script: |
             set -e
             cd /home/${{ secrets.GCP_VM_USER }}/blog-backend
-            tar -xzvf deploy.tar.gz
+            tar xzf deploy.tar.gz -C .
             mv deploy/* .
             rm -rf deploy deploy.tar.gz
             chmod +x deploy-blue-green.sh
