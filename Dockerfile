@@ -9,11 +9,14 @@ RUN apt-get update -y && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY dist ./dist
 COPY generated ./generated
 COPY package.json ./
+COPY pnpm-lock.yaml ./
 COPY prisma ./prisma
+COPY .env ./
 
 # 프로덕션 의존성만 설치 (런타임에 필요한 것만)
 RUN npm i -g pnpm && \
-    pnpm install --prod --frozen-lockfile
+    pnpm install --prod --frozen-lockfile && \
+    pnpm exec prisma generate
 
 # 헬스 체크 설정
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
