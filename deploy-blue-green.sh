@@ -8,7 +8,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # 설정
-PROJECT_DIR="/home/ubuntu/blog-backend"
+PROJECT_DIR="/home/hanrhfqkq/blog-backend"
 BLUE_PORT=4000
 GREEN_PORT=4001
 BLUE_CONTAINER="blog-backend-blue"
