@@ -181,7 +181,7 @@ main() {
     # 프로젝트 디렉토리 확인
     if [ ! -d "$PROJECT_DIR" ]; then
         echo -e "${RED}✗ 프로젝트 디렉토리를 찾을 수 없습니다: ${PROJECT_DIR}${NC}"
-        exit 1
+        exit 1`
     fi
     
     # .env 파일 확인
@@ -189,35 +189,6 @@ main() {
         echo -e "${RED}✗ .env 파일을 찾을 수 없습니다: ${PROJECT_DIR}/.env${NC}"
         exit 1
     fi
-    
-    # Prisma 마이그레이션 실행 (배포 전에 데이터베이스 준비)
-    echo -e "${YELLOW}Prisma 마이그레이션 실행 중...${NC}"
-    cd $PROJECT_DIR
-    
-    # pnpm이 없으면 설치
-    if ! command -v pnpm &> /dev/null; then
-        echo -e "${YELLOW}pnpm 설치 중...${NC}"
-        npm install -g pnpm || {
-            echo -e "${RED}✗ pnpm 설치 실패${NC}"
-            exit 1
-        }
-    fi
-    
-    # 의존성 설치 (prisma CLI 필요)
-    if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/prisma" ]; then
-        echo -e "${YELLOW}의존성 설치 중...${NC}"
-        pnpm install --frozen-lockfile || {
-            echo -e "${RED}✗ 의존성 설치 실패${NC}"
-            exit 1
-        }
-    fi
-    
-    # Prisma 마이그레이션 실행
-    pnpm exec prisma migrate deploy || {
-        echo -e "${RED}✗ Prisma 마이그레이션 실패${NC}"
-        exit 1
-    }
-    echo -e "${GREEN}✓ Prisma 마이그레이션 완료${NC}"
     
     # 현재 활성 환경 확인
     current_env=$(get_active_environment)
