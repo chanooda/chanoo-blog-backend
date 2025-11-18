@@ -53,13 +53,14 @@ jobs:
 
       - name: Prepare deployment files
         run: |
+          ls -la
           mkdir -p deploy
           cp -r dist deploy/
           cp -r generated deploy/ || echo "generated 폴더 없음 (prisma generate 필요)"
           cp package.json deploy/
           cp pnpm-lock.yaml deploy/
           cp Dockerfile deploy/
-          cp prisma deploy/ -r
+          cp -r prisma deploy/
           cp .env deploy/
           cp deploy-blue-green.sh deploy/
           cp nginx.conf.template deploy/ || true
