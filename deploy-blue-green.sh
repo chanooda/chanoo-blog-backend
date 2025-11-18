@@ -181,7 +181,7 @@ main() {
     # 프로젝트 디렉토리 확인
     if [ ! -d "$PROJECT_DIR" ]; then
         echo -e "${RED}✗ 프로젝트 디렉토리를 찾을 수 없습니다: ${PROJECT_DIR}${NC}"
-        exit 1`
+        exit 1
     fi
     
     # .env 파일 확인
