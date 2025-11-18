@@ -18,10 +18,6 @@ RUN npm i -g pnpm && \
     pnpm install --prod --frozen-lockfile && \
     pnpm exec prisma generate
 
-# 헬스 체크 설정
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD curl -f http://localhost:4000/api/health || exit 1
-
 EXPOSE 4000
 
 CMD ["node", "dist/main.js"]
