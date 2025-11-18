@@ -47,7 +47,6 @@ jobs:
         run: |
           ls -la
           mkdir -p deploy
-          cp -r generated deploy/
           cp package.json deploy/
           cp pnpm-lock.yaml deploy/
           cp Dockerfile deploy/
