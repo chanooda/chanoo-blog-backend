@@ -93,7 +93,8 @@
 				"arm64"
 			],
 			"libc": [
-				"musl"
+				"musl",
+				"glibc"
 			]
 		}
 	}

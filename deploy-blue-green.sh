@@ -21,7 +21,7 @@ NGINX_ENABLED="/etc/nginx/sites-enabled/blog-backend"
 # 헬스 체크 URL: VM 내부에서 컨테이너를 확인하는 주소 (실제 배포 주소가 아님)
 # 배포 스크립트가 VM 내부에서 실행되므로 localhost 사용
 HEALTH_CHECK_URL="http://localhost"
-MAX_HEALTH_CHECK_RETRIES=30
+MAX_HEALTH_CHECK_RETRIES=5
 HEALTH_CHECK_INTERVAL=2
 
 # 현재 활성화된 환경 확인
