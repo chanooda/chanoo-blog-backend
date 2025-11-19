@@ -45,7 +45,10 @@ jobs:
       - name: Create .env file
         run: |
           touch .env
-          jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' <<< "$SECRETS_CONTEXT" > .env
+          jq -r 'to_entries
+            | map(select(.key | startswith("GCP") | not))
+            | map("\(.key)=\(.value|tostring)")
+            | .[]' <<< "$SECRETS_CONTEXT" > .env
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
 
