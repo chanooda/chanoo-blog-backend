@@ -36,6 +36,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Build production bundle
+        run: |
+          pnpm install --prod --frozen-lockfile
+          pnpm exec prisma generate
+          pnpm build
+
       - name: Create .env file
         run: |
           touch .env
@@ -47,10 +53,12 @@ jobs:
         run: |
           ls -la
           mkdir -p deploy
+          cp -r dist deploy/
+          cp -r generated deploy/
+          cp -r prisma deploy/
           cp package.json deploy/
           cp pnpm-lock.yaml deploy/
           cp Dockerfile deploy/
-          cp -r prisma deploy/
           cp -a .env deploy/.
           cp deploy-blue-green.sh deploy/
           cp nginx.conf.template deploy/ || true
