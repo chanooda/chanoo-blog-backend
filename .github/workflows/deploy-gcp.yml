@@ -38,7 +38,7 @@ jobs:
 
       - name: Build production bundle
         run: |
-          pnpm install --prod --frozen-lockfile
+          pnpm install --frozen-lockfile
           pnpm exec prisma generate
           pnpm build
 
