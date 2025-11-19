@@ -15,7 +15,7 @@ COPY .env ./
 # 프로덕션 의존성만 설치 (런타임에 필요한 것만)
 RUN npm i -g pnpm 
 RUN pnpm install --prod --frozen-lockfile
-RUN pnpm exec prisma migrate
+RUN pnpm exec prisma migrate deploy
     
 EXPOSE 4000
 
