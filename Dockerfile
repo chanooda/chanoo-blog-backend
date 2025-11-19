@@ -5,9 +5,6 @@ WORKDIR /usr/src/app
 # 헬스 체크를 위한 curl 설치
 RUN apt-get update -y && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
-# 이미 빌드된 파일들 복사 (GitHub Actions에서 빌드됨)
-COPY dist ./dist
-COPY generated ./generated
 COPY package.json ./
 COPY pnpm-lock.yaml ./
 COPY prisma ./prisma
