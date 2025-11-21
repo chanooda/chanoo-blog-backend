@@ -66,28 +66,28 @@ update_nginx_config() {
     echo -e "${YELLOW}Nginx 설정 업데이트 중... (포트 ${target_port})${NC}"
     
     sudo tee $NGINX_CONFIG > /dev/null <<EOF
-upstream blog_backend {
-    server localhost:${target_port};
+upstream backend {
+    server localhost:4000;  
+    # server localhost:4001;
 }
 
 server {
-    listen 80;
+    listen 4000;
     server_name _;
 
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://blog_backend;
+        proxy_pass http://backend;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        
-        # 타임아웃 설정
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
         proxy_read_timeout 60s;
