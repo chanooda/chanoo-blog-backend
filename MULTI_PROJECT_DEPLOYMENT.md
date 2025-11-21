@@ -46,22 +46,23 @@ sudo nano /etc/nginx/sites-available/admin-panel
 sudo nano /etc/nginx/sites-available/api-service
 ```
 
-**프로젝트 1: blog-backend**
+**프로젝트 1: backend (포트 4000)**
 
 ```nginx
-# /etc/nginx/sites-available/blog-backend
-upstream blog_backend {
-    server localhost:4000;  # Blue 환경
+# /etc/nginx/sites-available/backend
+upstream backend {
+    server localhost:4000;  # Blue 환경 (초기 활성)
+    # server localhost:4001;  # Green 환경으로 전환 시 주석 해제
 }
 
 server {
-    listen 80;
-    server_name api.example.com;  # 또는 VM의 외부 IP
+    listen 4000;
+    server_name _;
 
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://blog_backend;
+        proxy_pass http://backend;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -78,22 +79,23 @@ server {
 }
 ```
 
-**프로젝트 2: admin-panel**
+**프로젝트 2: service (포트 5000)**
 
 ```nginx
-# /etc/nginx/sites-available/admin-panel
-upstream admin_panel {
-    server localhost:5000;  # Blue 환경
+# /etc/nginx/sites-available/service
+upstream service {
+    server localhost:5000;  # Blue 환경 (초기 활성)
+    # server localhost:5001;  # Green 환경으로 전환 시 주석 해제
 }
 
 server {
-    listen 80;
-    server_name admin.example.com;  # 또는 다른 IP
+    listen 5000;
+    server_name _;
 
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://admin_panel;
+        proxy_pass http://service;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -102,26 +104,31 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 }
 ```
 
-**프로젝트 3: api-service**
+**프로젝트 3: admin (포트 6000)**
 
 ```nginx
-# /etc/nginx/sites-available/api-service
-upstream api_service {
-    server localhost:6000;  # Blue 환경
+# /etc/nginx/sites-available/admin
+upstream admin {
+    server localhost:6000;  # Blue 환경 (초기 활성)
+    # server localhost:6001;  # Green 환경으로 전환 시 주석 해제
 }
 
 server {
-    listen 80;
-    server_name service.example.com;  # 또는 다른 IP
+    listen 6000;
+    server_name _;
 
     client_max_body_size 100M;
 
     location / {
-        proxy_pass http://api_service;
+        proxy_pass http://admin;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -130,6 +137,10 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
     }
 }
 ```
