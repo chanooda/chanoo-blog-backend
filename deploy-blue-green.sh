@@ -67,8 +67,7 @@ update_nginx_config() {
     
     sudo tee $NGINX_CONFIG > /dev/null <<EOF
 upstream backend {
-    server localhost:4000;  
-    # server localhost:4001;
+    server localhost:${target_port};
 }
 
 server {
@@ -80,13 +79,13 @@ server {
     location / {
         proxy_pass http://backend;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_cache_bypass \$http_upgrade;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
 
         proxy_connect_timeout 60s;
         proxy_send_timeout 60s;
