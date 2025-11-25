@@ -63,12 +63,13 @@ update_nginx_config() {
     local target_port=$1
     local target_container=$2
     
-    echo -e "${YELLOW}Nginx 설정 업데이트 중... (포트 ${target_port})${NC}"
+    echo -e "${YELLOW}Nginx 설정 업데이트 중... (트래픽을 포트 ${target_port}로 전환)${NC}"
     
-    sudo tee $NGINX_CONFIG > /dev/null <<EOF
+    # heredoc에서 'EOF'를 사용하여 모든 변수 치환 비활성화
+    # Nginx 변수($http_upgrade 등)가 bash에서 해석되지 않도록 함
+    sudo tee $NGINX_CONFIG > /dev/null <<'NGINX_EOF'
 upstream backend {
-    server localhost:4000;  
-    # server localhost:4001;
+    server localhost:TARGET_PORT_PLACEHOLDER;
 }
 
 server {
@@ -93,11 +94,26 @@ server {
         proxy_read_timeout 60s;
     }
 }
-EOF
+NGINX_EOF
+    
+    # 플레이스홀더를 실제 포트로 교체
+    sudo sed -i "s/TARGET_PORT_PLACEHOLDER/${target_port}/g" $NGINX_CONFIG
+    
+    # Nginx 설정 파일 활성화 (심볼릭 링크 생성)
+    if [ ! -L "$NGINX_ENABLED" ]; then
+        echo -e "${YELLOW}Nginx 설정 파일 활성화 중...${NC}"
+        sudo ln -sf $NGINX_CONFIG $NGINX_ENABLED
+    fi
 
     # Nginx 설정 테스트
     if sudo nginx -t > /dev/null 2>&1; then
-        sudo systemctl reload nginx
+        # Nginx가 실행 중이면 reload, 아니면 start
+        if systemctl is-active --quiet nginx 2>/dev/null; then
+            sudo systemctl reload nginx
+        else
+            echo -e "${YELLOW}Nginx 시작 중...${NC}"
+            sudo systemctl start nginx
+        fi
         echo -e "${GREEN}✓ Nginx 설정 업데이트 완료${NC}"
         return 0
     else

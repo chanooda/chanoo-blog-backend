@@ -1,7 +1,6 @@
 # /etc/nginx/sites-available/backend
 upstream backend {
-    server localhost:4000;  # Blue 환경 (초기 활성)
-    # server localhost:4001;  # Green 환경으로 전환 시 주석 해제
+    server localhost:4000;
 }
 
 server {
