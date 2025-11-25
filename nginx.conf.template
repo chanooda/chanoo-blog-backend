@@ -1,6 +1,6 @@
 # /etc/nginx/sites-available/backend
 upstream backend {
-    server localhost:4000;
+    server localhost:TARGET_PORT_PLACEHOLDER;
 }
 
 server {
