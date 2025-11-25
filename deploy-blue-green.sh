@@ -45,7 +45,7 @@ health_check() {
 
     # 1) 포트 오픈 체크
     while [ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]; do
-        if curl -s --connect-timeout 1 "http://localhost:${port}" -o /dev/null; then
+        if curl -s --connect-timeout 1 "http://localhost:${port}/api/health" -o /dev/null; then
             echo -e "${GREEN}✓ 포트 연결 성공${NC}"
             break
         fi
@@ -63,7 +63,7 @@ health_check() {
     # 2) 애플리케이션 준비 대기 (200 응답 체크)
     retries=0
     while [ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]; do
-        if curl -s -f "http://localhost:${port}" > /dev/null 2>&1; then
+        if curl -s -f "http://localhost:${port}/api/health" > /dev/null 2>&1; then
             echo -e "${GREEN}✓ 헬스 체크 성공: ${container_name}${NC}"
             return 0
         fi
