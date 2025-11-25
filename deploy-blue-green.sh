@@ -84,9 +84,15 @@ update_nginx_config() {
     
     echo -e "${YELLOW}Nginx 설정 업데이트 중... (트래픽을 포트 ${target_port}로 전환)${NC}"
     
-    # heredoc에서 'EOF'를 사용하여 모든 변수 치환 비활성화
-    # Nginx 변수($http_upgrade 등)가 bash에서 해석되지 않도록 함
-    sudo tee $NGINX_CONFIG > /dev/null <<'NGINX_EOF'
+    # 템플릿 파일 사용 (heredoc 문제 완전 회피)
+    # 템플릿 파일을 복사하고 포트만 교체
+    if [ -f "$PROJECT_DIR/nginx.conf.template" ]; then
+        sudo cp "$PROJECT_DIR/nginx.conf.template" $NGINX_CONFIG
+        # 플레이스홀더를 실제 포트로 교체
+        sudo sed -i "s/TARGET_PORT_PLACEHOLDER/${target_port}/g" $NGINX_CONFIG
+    else
+        # 템플릿 파일이 없으면 직접 생성 (heredoc 사용, 하지만 더 안전하게)
+        sudo bash -c "cat > $NGINX_CONFIG" <<'EOF'
 upstream backend {
     server localhost:TARGET_PORT_PLACEHOLDER;
 }
@@ -113,10 +119,10 @@ server {
         proxy_read_timeout 60s;
     }
 }
-NGINX_EOF
-    
-    # 플레이스홀더를 실제 포트로 교체
-    sudo sed -i "s/TARGET_PORT_PLACEHOLDER/${target_port}/g" $NGINX_CONFIG
+EOF
+        # 플레이스홀더를 실제 포트로 교체
+        sudo sed -i "s/TARGET_PORT_PLACEHOLDER/${target_port}/g" $NGINX_CONFIG
+    fi
     
     # Nginx 설정 파일 활성화 (심볼릭 링크 생성)
     if [ ! -L "$NGINX_ENABLED" ]; then
