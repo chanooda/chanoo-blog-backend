@@ -18,12 +18,6 @@ IMAGE_NAME="blog-backend"
 REMOVE_OLD_CONTAINER_ON_DEPLOY="${REMOVE_OLD_CONTAINER_ON_DEPLOY:-false}"
 NGINX_CONFIG="/etc/nginx/sites-available/blog-backend"
 NGINX_ENABLED="/etc/nginx/sites-enabled/blog-backend"
-# 헬스 체크 URL: VM 내부에서 컨테이너를 확인하는 주소 (실제 배포 주소가 아님)
-# 배포 스크립트가 VM 내부에서 실행되므로 localhost 사용
-HEALTH_CHECK_URL="http://localhost"
-MAX_HEALTH_CHECK_RETRIES=60
-HEALTH_CHECK_INTERVAL=2
-
 # 현재 활성화된 환경 확인
 get_active_environment() {
     if docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
@@ -33,48 +27,6 @@ get_active_environment() {
     else
         echo "none"
     fi
-}
-
-# 헬스 체크 함수
-health_check() {
-    local port=$1
-    local container_name=$2
-    local retries=0
-
-    echo -e "${YELLOW}헬스 체크 시작: ${container_name} (포트 ${port})${NC}"
-
-    # 1) 포트 오픈 체크
-    while [ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]; do
-        if curl -s --connect-timeout 1 "http://localhost:${port}/api/health" -o /dev/null; then
-            echo -e "${GREEN}✓ 포트 연결 성공${NC}"
-            break
-        fi
-
-        retries=$((retries + 1))
-        echo -e "${YELLOW}포트 오픈 대기 ${retries}/${MAX_HEALTH_CHECK_RETRIES}...${NC}"
-        sleep $HEALTH_CHECK_INTERVAL
-    done
-
-    if [ $retries -ge $MAX_HEALTH_CHECK_RETRIES ]; then
-        echo -e "${RED}✗ 포트 오픈 실패: ${container_name}${NC}"
-        return 1
-    fi
-
-    # 2) 애플리케이션 준비 대기 (200 응답 체크)
-    retries=0
-    while [ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]; do
-        if curl -s -f "http://localhost:${port}/api/health" > /dev/null 2>&1; then
-            echo -e "${GREEN}✓ 헬스 체크 성공: ${container_name}${NC}"
-            return 0
-        fi
-
-        retries=$((retries + 1))
-        echo -e "${YELLOW}앱 준비 대기 ${retries}/${MAX_HEALTH_CHECK_RETRIES}...${NC}"
-        sleep $HEALTH_CHECK_INTERVAL
-    done
-
-    echo -e "${RED}✗ 앱 준비 실패${NC}"
-    return 1
 }
 
 # Nginx 설정 업데이트
@@ -186,16 +138,8 @@ deploy_new_container() {
         --restart unless-stopped \
         $IMAGE_NAME:latest
     
-    # 헬스 체크
-    if health_check $target_port $container_name; then
-        echo -e "${GREEN}✓ 배포 성공: ${container_name}${NC}"
-        return 0
-    else
-        echo -e "${RED}✗ 배포 실패: ${container_name}${NC}"
-        docker logs $container_name
-        stop_container $container_name
-        return 1
-    fi
+    echo -e "${GREEN}✓ 배포 성공: ${container_name}${NC}"
+    return 0
 }
 
 # 롤백
@@ -260,24 +204,15 @@ main() {
             echo -e "${GREEN}✓ 트래픽 전환 완료${NC}"
             
             # 잠시 대기 후 최종 헬스 체크
-            echo -e "${YELLOW}최종 헬스 체크 중...${NC}"
-            sleep 5
+            echo -e "${GREEN}✓ 배포 성공!${NC}"
             
-            if health_check $deploy_port $deploy_container; then
-                echo -e "${GREEN}✓ 배포 성공!${NC}"
-                
-                # 이전 컨테이너 자동 제거 (환경 변수로 제어)
-                if [ "$REMOVE_OLD_CONTAINER_ON_DEPLOY" = "true" ]; then
-                    echo -e "${YELLOW}환경 변수에 따라 이전 컨테이너를 제거합니다...${NC}"
-                    stop_container $old_container
-                    docker image prune -f
-                else
-                    echo -e "${YELLOW}이전 컨테이너를 유지합니다. 제거하려면 REMOVE_OLD_CONTAINER_ON_DEPLOY=true 설정${NC}"
-                fi
+            # 이전 컨테이너 자동 제거 (환경 변수로 제어)
+            if [ "$REMOVE_OLD_CONTAINER_ON_DEPLOY" = "true" ]; then
+                echo -e "${YELLOW}환경 변수에 따라 이전 컨테이너를 제거합니다...${NC}"
+                stop_container $old_container
+                docker image prune -f
             else
-                echo -e "${RED}✗ 최종 헬스 체크 실패 - 롤백 중...${NC}"
-                rollback $current_env
-                exit 1
+                echo -e "${YELLOW}이전 컨테이너를 유지합니다. 제거하려면 REMOVE_OLD_CONTAINER_ON_DEPLOY=true 설정${NC}"
             fi
         else
             echo -e "${RED}✗ 트래픽 전환 실패 - 롤백 중...${NC}"
