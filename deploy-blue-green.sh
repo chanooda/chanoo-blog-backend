@@ -18,6 +18,39 @@ IMAGE_NAME="blog-backend"
 REMOVE_OLD_CONTAINER_ON_DEPLOY="${REMOVE_OLD_CONTAINER_ON_DEPLOY:-false}"
 NGINX_CONFIG="/etc/nginx/sites-available/blog-backend"
 NGINX_ENABLED="/etc/nginx/sites-enabled/blog-backend"
+
+CONTAINER_WAIT_TIMEOUT=120
+CONTAINER_WAIT_INTERVAL=2
+# 컨테이너 실행 상태 대기
+wait_for_container_running() {
+    local container_name=$1
+    local elapsed=0
+
+    echo -e "${YELLOW}컨테이너 상태 확인 중: ${container_name}${NC}"
+
+    while [ $elapsed -lt $CONTAINER_WAIT_TIMEOUT ]; do
+        status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null || true)
+
+        if [ "$status" = "running" ]; then
+            echo -e "${GREEN}✓ 컨테이너 실행 확인: ${container_name}${NC}"
+            return 0
+        fi
+
+        if [ "$status" = "exited" ] || [ "$status" = "dead" ] || [ -z "$status" ]; then
+            echo -e "${RED}✗ 컨테이너 실행 실패: ${container_name} (상태: ${status:-unknown})${NC}"
+            docker logs "$container_name" || true
+            return 1
+        fi
+
+        sleep $CONTAINER_WAIT_INTERVAL
+        elapsed=$((elapsed + CONTAINER_WAIT_INTERVAL))
+    done
+
+    echo -e "${RED}✗ 컨테이너가 제한 시간 내 실행되지 않았습니다: ${container_name}${NC}"
+    docker logs "$container_name" || true
+    return 1
+}
+
 # 현재 활성화된 환경 확인
 get_active_environment() {
     if docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
@@ -137,9 +170,14 @@ deploy_new_container() {
         -v $PROJECT_DIR/prisma:/usr/src/app/prisma \
         --restart unless-stopped \
         $IMAGE_NAME:latest
-    
-    echo -e "${GREEN}✓ 배포 성공: ${container_name}${NC}"
-    return 0
+
+    if wait_for_container_running $container_name; then
+        echo -e "${GREEN}✓ 배포 성공: ${container_name}${NC}"
+        return 0
+    else
+        stop_container $container_name
+        return 1
+    fi
 }
 
 # 롤백
