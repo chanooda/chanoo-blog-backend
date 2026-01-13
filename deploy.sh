@@ -28,7 +28,7 @@ if [ ! -f "$NGINX_CONF" ]; then
     echo "> Nginx 설정 파일 생성 완료: $NGINX_CONF"
 fi
 
-CURRENT_PORT=$(grep -oE "[0-9]+" $TARGET_INC 2>/dev/null || echo "")
+CURRENT_PORT=$(grep -oE ":[0-9]+" $TARGET_INC 2>/dev/null | sed 's/://' || echo "")
 
 # 1. 현재 가동 중인 포트 확인
 echo "현재 가동 중인 포트: $CURRENT_PORT"
@@ -60,10 +60,12 @@ echo "> 기존 $TARGET_COLOR 컨테이너가 있다면 종료합니다."
 docker rm -f "$APP_NAME-$TARGET_COLOR" 2>/dev/null || true
 
 # 2-2. 새로운 컨테이너 실행
-echo " > $TARGET_PORT 포트로 $TARGET_COLOR 컨테이너를 실행합니다."
+echo " > Dockerfile build를 시작합니다."
 
 docker build -t "$APP_NAME:latest" .
 
+
+echo " > $TARGET_PORT 포트로 $TARGET_COLOR 컨테이너를 실행합니다."
 docker run -d \
   --name "$APP_NAME-$TARGET_COLOR" \
   -p "$TARGET_PORT:$APP_PORT" \
