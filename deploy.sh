@@ -77,15 +77,16 @@ do
  echo "> 접속 시도 ($RETRY_COUNT/$RETRY_MAX_COUNT)..."
  
  # 3-1 health check 엔드포인트 요청을 통해 응답에 ok가 포함되었는지 확인
- STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:$TARGET_PORT/api/health)
+ # curl 실패 시에도 계속 진행하기 위해 || true 추가
+ STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 --max-time 10 http://127.0.0.1:$TARGET_PORT/api/health || echo "000")
 
-  if [ $STATUS_CODE -eq 200 ]; then
+  if [ "$STATUS_CODE" = "200" ]; then
     echo "> Health Check 성공! 새 컨테이너가 정상적으로 구동되었습니다."
     break
   fi
 
   if [ $RETRY_COUNT -eq $RETRY_MAX_COUNT ]; then
-    echo "> Health Check 실패. 배포를 중단합니다."
+    echo "> Health Check 실패 (상태 코드: ${STATUS_CODE:-연결 실패}). 배포를 중단합니다."
     docker stop "$APP_NAME-$TARGET_COLOR"
     exit 1
   fi
