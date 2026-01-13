@@ -5,6 +5,7 @@ set -e          # 명령 실패 시 즉시 종료
 set -u          # 정의되지 않은 변수 사용 시 오류
 set -o pipefail # 파이프라인에서 오류 감지
 
+APP_PORT=4000
 APP_NAME=blog-server
 TARGET_INC="/etc/nginx/conf.d/blog_server_target.inc"
 NGINX_CONF="/etc/nginx/conf.d/blog_server.conf"
@@ -65,7 +66,7 @@ docker build -t "$APP_NAME:latest" .
 
 docker run -d \
   --name "$APP_NAME-$TARGET_COLOR" \
-  -p "$TARGET_PORT:3000" \
+  -p "$TARGET_PORT:$APP_PORT" \
   --env-file .env \
   --restart always \
   "$APP_NAME:latest"
