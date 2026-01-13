@@ -66,6 +66,7 @@ docker build -t "$APP_NAME:latest" .
 docker run -d \
   --name "$APP_NAME-$TARGET_COLOR" \
   -p "$TARGET_PORT:3000" \
+  --env-file .env \
   --restart always \
   "$APP_NAME:latest"
 
