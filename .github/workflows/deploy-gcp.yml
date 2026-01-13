@@ -63,6 +63,7 @@ jobs:
           cp pnpm-lock.yaml deploy/
           cp Dockerfile deploy/
           cp -a .env deploy/.
+          cp deploy.sh deploy/.
           cp nginx.conf.template deploy/
           cp nginx.inc.template deploy/ || true
 
