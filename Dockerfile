@@ -17,6 +17,7 @@ RUN npm i -g pnpm
 RUN pnpm install --prod --frozen-lockfile
 RUN pnpm exec prisma migrate deploy
     
-EXPOSE 4000
+ENV APP_PORT=3000
+EXPOSE 3000
 
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
