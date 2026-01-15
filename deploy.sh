@@ -5,6 +5,11 @@ set -e          # 명령 실패 시 즉시 종료
 set -u          # 정의되지 않은 변수 사용 시 오류
 set -o pipefail # 파이프라인에서 오류 감지
 
+REGISTRY_URL="127.0.0.1:5000"
+IMAGE_NAME="blog-server-app"
+IMAGE_TAG="latest"
+FULL_IMAGE_PATH="$REGISTRY_URL/$IMAGE_NAME:$IMAGE_TAG"
+
 APP_PORT=4000
 APP_NAME=blog-server
 TARGET_INC="/etc/nginx/conf.d/blog_server_target.inc"
@@ -60,10 +65,9 @@ echo "> 기존 $TARGET_COLOR 컨테이너가 있다면 종료합니다."
 docker rm -f "$APP_NAME-$TARGET_COLOR" 2>/dev/null || true
 
 # 2-2. 새로운 컨테이너 실행
-echo " > Dockerfile build를 시작합니다."
+echo " > 이미지 다운로드를 시작합니다."
 
-docker build -t "$APP_NAME:latest" .
-
+docker pull "$FULL_IMAGE_PATH"
 
 echo " > $TARGET_PORT 포트로 $TARGET_COLOR 컨테이너를 실행합니다."
 docker run -d \
@@ -71,7 +75,7 @@ docker run -d \
   -p "$TARGET_PORT:$APP_PORT" \
   --env-file .env \
   --restart always \
-  "$APP_NAME:latest"
+  "$FULL_IMAGE_PATH"
 
 # 3. 새 컨테이너 Health Check
 echo "> Health Check 시작: http://127.0.0.1:$TARGET_PORT"

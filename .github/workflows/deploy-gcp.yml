@@ -35,13 +35,6 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-
-      - name: Build production bundle
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm exec prisma generate
-          pnpm build
-
       - name: Create .env file
         run: |
           touch .env
@@ -56,20 +49,60 @@ jobs:
         run: |
           ls -la
           mkdir -p deploy
-          cp -r dist deploy/
-          cp -r generated deploy/
-          cp -r prisma deploy/
-          cp package.json deploy/
-          cp pnpm-lock.yaml deploy/
-          cp Dockerfile deploy/
-          cp -a .env deploy/.
+          cp .dockerignore deploy/.
           cp deploy.sh deploy/.
+          cp -a .env deploy/.
           cp nginx.conf.template deploy/
           cp nginx.inc.template deploy/ || true
 
       - name: Create deployment archive
         run: |
           tar czf deploy.tar.gz -C deploy .
+
+      - name: Get Public IP
+        id: ip
+        run: echo "ipv4=$(curl -s https://ipinfo.io/ip)" >> $GITHUB_OUTPUT
+
+      - name: Auth to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Open Firewall
+        run: |
+          gcloud compute firewall-rules create allow-gh-${{ github.run_id }} \
+          --action=ALLOW --rules=tcp:5000 --source-ranges=${{ steps.ip.outputs.ipv4 }} \
+          --target-tags=docker-registry
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:master
+            network=host
+
+      - name: Configure Insecure Registry
+        run: |
+          echo '{"insecure-registries": ["${{ secrets.GCP_VM_IP }}:5000"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.GCP_VM_IP }}:5000/blog-server-app:latest
+            ${{ secrets.GCP_VM_IP }}:5000/blog-server-app:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha, mode=max
 
       - name: Copy changed files to server
         uses: appleboy/scp-action@v1
