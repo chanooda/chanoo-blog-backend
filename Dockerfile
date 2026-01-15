@@ -23,8 +23,6 @@ COPY . .
 RUN pnpm prisma generate
 # 2. Nest.js 빌드
 RUN pnpm run build
-# 3. 프로덕션 의존성만 남기기
-RUN pnpm install --prod --frozen-lockfile
 
 # Stage 4: Runner
 FROM node:20-alpine AS runner
