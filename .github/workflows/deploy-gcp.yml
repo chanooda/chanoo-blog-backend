@@ -83,7 +83,7 @@ jobs:
             image=moby/buildkit:master
             network=host
           buildkitd-config-inline: |
-            [registry."${{ secrets.VM_EXTERNAL_IP }}:5000"]
+            [registry."${{ secrets.GCP_VM_IP }}:5000"]
               http = true
               insecure = true
 
