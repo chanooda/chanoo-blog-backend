@@ -41,4 +41,4 @@ COPY --from=builder /app/prisma ./prisma
 EXPOSE 4000
 
 # 컨테이너 시작 시 Prisma 마이그레이션 실행 후 애플리케이션 시작
-CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
