@@ -40,6 +40,5 @@ COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 4000
 
-# 컨테이너 시작 시 DB 마이그레이션이 필요한 경우를 위해 CMD 구성
-# (실제 배포 전략에 따라 마이그레이션 단계는 분리하는 것이 좋습니다)
-CMD ["node", "dist/main"]
+# 컨테이너 시작 시 Prisma 마이그레이션 실행 후 애플리케이션 시작
+CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/main"]

@@ -499,8 +499,8 @@ export class WriteRepository {
 		} catch (error) {
 			console.error(error)
 			throw new StandardHttpException(
-				"글 생성 중 오류가 발생했습니다.",
-				"WRITE_CREATE_ERROR",
+				"글 목록을 불러오는 중",
+				"WRITE_FIND_ALL_PUBLIC_ERROR",
 				HttpStatus.BAD_REQUEST,
 				error
 			)
