@@ -143,3 +143,4 @@ jobs:
         run: |
           rm -f deploy.tar.gz
           rm -rf deploy
+          gcloud compute firewall-rules delete allow-gh-${{ github.run_id }} --quiet || echo "방화벽 규칙이 이미 삭제되었거나 존재하지 않습니다."
