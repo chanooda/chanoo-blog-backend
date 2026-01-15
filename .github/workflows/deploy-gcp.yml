@@ -82,10 +82,15 @@ jobs:
           driver-opts: |
             image=moby/buildkit:master
             network=host
+          buildkitd-config-inline: |
+            [registry."${{ secrets.VM_EXTERNAL_IP }}:5000"]
+              http = true
+              insecure = true
 
       - name: Configure Insecure Registry
         run: |
-          echo '{"insecure-registries": ["${{ secrets.GCP_VM_IP }}:5000"]}' | sudo tee /etc/docker/daemon.json
+          sudo jq '. + {"insecure-registries": ["${{ secrets.VM_EXTERNAL_IP }}:5000"]}' /etc/docker/daemon.json > /tmp/daemon.json
+          sudo mv /tmp/daemon.json /etc/docker/daemon.json
           sudo systemctl restart docker
 
       - name: Login to Docker Hub
