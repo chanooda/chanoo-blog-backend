@@ -107,6 +107,7 @@ jobs:
           host: ${{ secrets.GCP_VM_IP }}
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GCP_SSH_PASSWORD }}
           port: 22
           source: "deploy.tar.gz"
           target: /home/${{ secrets.GCP_VM_USER }}/blog-backend
@@ -117,6 +118,7 @@ jobs:
           host: ${{ secrets.GCP_VM_IP }}
           username: ${{ secrets.GCP_VM_USER }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GCP_SSH_PASSWORD }}
           port: 22
           script: |
             set -e
