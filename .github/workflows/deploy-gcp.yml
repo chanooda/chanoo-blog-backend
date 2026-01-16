@@ -89,6 +89,7 @@ jobs:
           registry: chanoo.dev:5000
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
+
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -105,7 +106,6 @@ jobs:
         with:
           host: ${{ secrets.GCP_VM_IP }}
           username: ${{ secrets.GCP_VM_USER }}
-          password: ${{ secrets.GCP_SSH_PASSWORD }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
           source: "deploy.tar.gz"
@@ -116,7 +116,6 @@ jobs:
         with:
           host: ${{ secrets.GCP_VM_IP }}
           username: ${{ secrets.GCP_VM_USER }}
-          password: ${{ secrets.GCP_SSH_PASSWORD }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
           script: |
