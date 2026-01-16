@@ -5,7 +5,7 @@ set -e          # 명령 실패 시 즉시 종료
 set -u          # 정의되지 않은 변수 사용 시 오류
 set -o pipefail # 파이프라인에서 오류 감지
 
-REGISTRY_URL="127.0.0.1:5000"
+REGISTRY_URL="chanoo.dev:5000"
 IMAGE_NAME="blog-server-app"
 IMAGE_TAG="latest"
 FULL_IMAGE_PATH="$REGISTRY_URL/$IMAGE_NAME:$IMAGE_TAG"
