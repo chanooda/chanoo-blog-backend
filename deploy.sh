@@ -35,8 +35,8 @@ if [ ! -f "$NGINX_CONF" ]; then
 fi
 
 # Nginx 설정 파일 초기화 (존재하지 않으면 템플릿에서 복사)
-if [ ! -f "$NGINX_INC" ]; then
-    echo "> Nginx 설정 파일이 존재하지 않습니다. 템플릿에서 생성합니다: $NGINX_INC"
+if [ ! -f "$TARGET_INC" ]; then
+    echo "> Nginx 설정 파일이 존재하지 않습니다. 템플릿에서 생성합니다: $TARGET_INC"
         
     # 템플릿 파일 존재 확인
     if [ ! -f "$NGINX_INC_TEMPLATE" ]; then
@@ -44,8 +44,8 @@ if [ ! -f "$NGINX_INC" ]; then
         exit 1
     fi
     
-    sudo cp "$NGINX_INC_TEMPLATE" "$NGINX_INC"
-    echo "> Nginx 설정 파일 생성 완료: $NGINX_INC"
+    sudo cp "$NGINX_INC_TEMPLATE" "$TARGET_INC"
+    echo "> Nginx 설정 파일 생성 완료: $TARGET_INC"
 fi
 
 CURRENT_PORT=$(grep -oE ":[0-9]+" $TARGET_INC 2>/dev/null | sed 's/://' || echo "")
