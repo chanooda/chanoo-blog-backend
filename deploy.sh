@@ -15,6 +15,7 @@ APP_NAME=blog-server
 TARGET_INC="/etc/nginx/conf.d/blog_server_target.inc"
 NGINX_CONF="/etc/nginx/conf.d/blog_server.conf"
 NGINX_CONF_TEMPLATE="nginx.conf.template"
+NGINX_INC_TEMPLATE="nginx.inc.template"
 BLUE_PORT=3000
 GREEN_PORT=3001
 RETRY_MAX_COUNT=50
@@ -31,6 +32,20 @@ if [ ! -f "$NGINX_CONF" ]; then
     
     sudo cp "$NGINX_CONF_TEMPLATE" "$NGINX_CONF"
     echo "> Nginx 설정 파일 생성 완료: $NGINX_CONF"
+fi
+
+# Nginx 설정 파일 초기화 (존재하지 않으면 템플릿에서 복사)
+if [ ! -f "$TARGET_INC" ]; then
+    echo "> Nginx 설정 파일이 존재하지 않습니다. 템플릿에서 생성합니다: $TARGET_INC"
+        
+    # 템플릿 파일 존재 확인
+    if [ ! -f "$NGINX_INC_TEMPLATE" ]; then
+        echo "> 오류: $NGINX_INC_TEMPLATE 파일을 찾을 수 없습니다."
+        exit 1
+    fi
+    
+    sudo cp "$NGINX_INC_TEMPLATE" "$TARGET_INC"
+    echo "> Nginx 설정 파일 생성 완료: $TARGET_INC"
 fi
 
 CURRENT_PORT=$(grep -oE ":[0-9]+" $TARGET_INC 2>/dev/null | sed 's/://' || echo "")
