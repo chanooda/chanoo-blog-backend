@@ -6,7 +6,14 @@ import { AppModule } from "./modules/app/app.module"
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, {
-		cors: true,
+		cors: {
+			origin: [
+				...(process.env.NODE_ENV === "production"
+					? ["https://admin.chanoo.dev", "https://service.chanoo.dev"]
+					: ["http://localhost:3000", "http://localhost:3001"]),
+			],
+			credentials: true,
+		},
 	})
 
 	app.setGlobalPrefix("api")
